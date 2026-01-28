@@ -1,0 +1,160 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>DiegoBarberia | Inicio</title>
+    <link rel="stylesheet" href="{% static 'inicio/css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-left">
+            <img src="{% static 'inicio/img/logo.png' %}" alt="Logo" class="logo">
+            <ul class="nav-links">
+                <li><a href="#inicio-top">Inicio</a></li>
+                <li><a href="#barberos">Nuestros Barberos</a></li>
+                <li><a href="#quienes-somos">Quiénes Somos</a></li>
+                <li><a href="#servicios">Servicios</a></li>
+            </ul>
+        </div>
+
+        <div class="nav-right">
+            <button class="btn-cita" onclick="saludar()">Agendar Cita</button>
+        </div>
+    </nav>
+
+    <header id="inicio-top" class="hero-banner">
+        <div class="hero-overlay">
+            <div class="hero-content">
+                <h1>Donde el estilo clásico</h1>
+                <p>Se encuentra con la perfección moderna.</p>
+                <p class="subtext">Tu nuevo corte te espera.</p>
+                <button class="btn-cita-banner">Agendar Cita</button>
+            </div>
+        </div>
+    </header>
+    <section id="barberos" class="barberos-section">
+        <h2>Nuestros Barberos</h2>
+        <div class="carousel-container">
+            <div class="carousel-track">
+                {% for barbero in barberos %}
+                <div class="barbero-card">
+                    <img src="{{ barbero.foto.url }}" alt="{{ barbero.nombre }}">
+                    <div class="barbero-info">
+                        <h3>{{ barbero.nombre }}</h3>
+                        {% if barbero.especialidad %}
+                            <p>{{ barbero.especialidad }}</p>
+                        {% else %}
+                            <p>Barbero Profesional</p> {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    <section id="quienes-somos" class="quienes-somos">
+        <div class="qs-container">
+            <div class="qs-info">
+                <span class="subtitle">Nuestra Historia</span>
+                <h2>Pasión por el detalle, respeto por la tradición</h2>
+                <p>
+                    En <strong>DiegoBarberia</strong>, no solo cortamos el cabello; esculpimos un estilo que define quién eres. 
+                    Desde nuestra fundación, nos hemos dedicado a rescatar la esencia de la barbería clásica combinándola con 
+                    las tendencias más modernas.
+                </p>
+                <p>
+                    Cada servicio es un ritual. Utilizamos técnicas tradicionales de toalla caliente y navaja libre para 
+                    garantizar que cada cliente salga de nuestras sedes sintiéndose su mejor versión.
+                </p>
+                <div class="qs-stats">
+                    <div><strong>10+</strong><p>Años de Experiencia</p></div>
+                    <div><strong>5k+</strong><p>Clientes Felices</p></div>
+                </div>
+            </div>
+
+            <div class="qs-locations">
+                <h2>Nuestras Sedes</h2>
+                
+                <div class="location-card">
+                    <h3>Sede Centro</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> Cl. 15 #7-23, Ibagué, Tolima</p>
+                    <div class="map-container">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d31822.645980776728!2d-75.246537596266!3d4.442582442524384!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e38c53b87b1decb%3A0x5f4b06b97653b447!2sBARBER%20DIEGO!5e0!3m2!1ses-419!2sco!4v1769565113757!5m2!1ses-419!2sco" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+                </div>
+
+                <div class="location-card">
+                    <h3>Sede Ricaute</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> Cra. 11 Bis Sur #20b-2, Ibagué, Tolima</p>
+                    <div class="map-container">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d31822.645980776728!2d-75.246537596266!3d4.442582442524384!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e38c59ec75ddb4d%3A0x536bd776ede222da!2sBarber%20diego!5e0!3m2!1ses-419!2sco!4v1769565145340!5m2!1ses-419!2sco" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="servicios" class="servicios-section">
+        <div class="servicios-container">
+            <div class="servicios-tabla">
+                <span class="subtitle">Tarifas</span>
+                <h2>Nuestros Servicios</h2>
+                {% load l10n %}
+                <table class="tabla-precios">
+                    <tbody>
+                        {% for servicio in servicios %}
+                        <tr>
+                            <td class="servicio-nombre">{{ servicio.nombre }}</td>
+                            <td class="servicio-puntos">........................................</td>
+                            {% load humanize %} 
+                            <td class="servicio-precio">
+                                ${{ servicio.precio|intcomma }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="servicios-imagen">
+                <video autoplay muted loop playsinline class="video-servicios">
+                    <source src="/static/inicio/img/servicios_video.mp4" type="video/mp4">
+                    Tu navegador no soporta videos.
+                </video>
+                
+                <div class="imagen-overlay">
+                    <p>"La calidad no es un acto, es un hábito."</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="{% static 'inicio/js/main.js' %}"></script>
+</body>
+<footer class="main-footer">
+    <div class="footer-container">
+        <div class="footer-content">
+            <img src="/static/inicio/img/logo.png" alt="Logo DiegoBarberia" class="footer-logo">
+            
+            <div class="footer-socials">
+                <a href="https://instagram.com/tu_usuario" target="_blank"><i class="fab fa-instagram"></i></a>
+                <a href="https://facebook.com/tu_pagina" target="_blank"><i class="fab fa-facebook"></i></a>
+            </div>
+
+            <div class="footer-contact">
+                <p><i class="fas fa-phone-alt"></i> +57 300 000 0000</p>
+                <p>Abierto: Lunes a Sábado - 9:00 AM a 8:00 PM</p>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p class="creator-info">
+                Diseñado por Juan Diego Oviedo | Tel: 3217702237
+            </p>
+            
+            <a href="/admin" class="hidden-login-trigger" title="Acceso Personal"><i class="fas fa-lock"></i></a>
+        </div>
+    </div>
+</footer>
+</html>

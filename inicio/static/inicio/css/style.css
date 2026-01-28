@@ -1,0 +1,655 @@
+/* Configuraciones Generales */
+* { margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+}
+body { font-family: 'Segoe UI', sans-serif; 
+    background-color: #121212; 
+    color: white;
+    scroll-behavior: smooth; 
+}
+section[id] {
+    scroll-margin-top: 80px; /* Ajusta este valor según la altura de tu navbar */
+}
+/* La Barra de Navegación Sticky */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 5%;
+    background-color: #1f1f1f;
+    border-bottom: 2px solid #d4af37;
+    
+    /* PROPIEDADES STICKY */
+    position: sticky;
+    top: 0;
+    z-index: 1000; /* Asegura que pase por encima de todo (barberos, mapas, etc) */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Sombra para dar profundidad al bajar */
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 30px; /* Espacio entre logo y links */
+}
+
+.logo {
+    height: 50px;
+    width: auto;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 20px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #e0e0e0;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+.nav-links a:hover {
+    color: #d4af37;
+}
+
+/* Botón Derecho */
+.btn-cita {
+    background-color: #d4af37;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-cita:hover {
+    background-color: #f1c40f;
+    transform: scale(1.05);
+}
+
+.hero {
+    padding: 100px 20px;
+    text-align: center;
+}
+
+/* Sección del Banner Principal */
+.hero-banner {
+    /* Cargamos la imagen desde la carpeta static de Django */
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
+                      url('../img/imagen_inicio.png'); /* Se puede modficar la imagen*/
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* Efecto parallax opcional */
+    height: 80vh; /* Ocupa el 80% de la altura de la pantalla */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-overlay {
+    background-color: rgba(255, 255, 255, 0.1); /* Fondo semitransparente para el cuadro */
+    backdrop-filter: blur(5px); /* Efecto de desenfoque moderno */
+    padding: 40px;
+    border-radius: 2px;
+    border-left: 5px solid #d4af37; /* Detalle dorado lateral */
+    max-width: 600px;
+    text-align: left;
+}
+
+.hero-content h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    color: #ffffff;
+}
+
+.hero-content p {
+    font-size: 1.5rem;
+    color: #f0f0f0;
+}
+
+.hero-content .subtext {
+    font-size: 1.2rem;
+    margin-bottom: 25px;
+    color: #d4af37;
+}
+
+.btn-cita-banner {
+    background-color: #d4af37;
+    color: black;
+    padding: 15px 30px;
+    border: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-cita-banner:hover {
+    background-color: #ffffff;
+    letter-spacing: 1px;
+}
+
+
+
+/* Carrusel de Barberos */
+/* 1. SECCIÓN GENERAL: Más aire y profundidad */
+.barberos-section {
+    padding: 100px 0; /* Espaciado premium para que no se vea amontonado */
+    background: radial-gradient(circle at center, #1a1a1a 0%, #121212 100%);
+    overflow: hidden; 
+    width: 100%;
+    text-align: center;
+}
+
+.barberos-section h2 {
+    color: #d4af37;
+    font-size: 2.8rem;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    margin-bottom: 15px;
+    font-weight: 800;
+}
+
+/* Línea decorativa bajo el título para el toque de barbería clásica */
+.barberos-section::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background: #d4af37;
+    margin: 0 auto 50px auto;
+}
+
+/* 2. CONTENEDOR DEL CARRUSEL: Crucial para el centrado absoluto */
+.carousel-container {
+    width: 100%;
+    overflow: hidden; /* Corta los clones que sobran a los lados */
+    position: relative;
+    padding: 60px 0; /* Espacio para que el resaltado no se corte arriba/abajo */
+    display: block;  /* Cambiado a block para que JS controle la tira libremente */
+}
+
+.carousel-track {
+    display: flex;
+    align-items: center;
+    width: max-content; /* Permite que la tira se extienda infinitamente */
+    will-change: transform;
+    /* La transición se define en JS para permitir el "salto invisible" */
+}
+
+/* 3. TARJETAS: El equilibrio entre diseño y funcionalidad */
+.barbero-card {
+    /* Dimensiones fijas para que el cálculo matemático de JS sea exacto */
+    min-width: 320px; 
+    max-width: 320px; 
+    height: 500px;    
+    margin: 0 25px; /* Espacio de 50px total entre tarjetas */
+    
+    /* Estética Premium */
+    background: #181818;
+    border-radius: 15px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    
+    /* Efectos de transición y suavizado */
+    transition: transform 0.6s ease, opacity 0.6s ease, box-shadow 0.6s ease;
+    transform: scale(0.8);
+    opacity: 0.4;
+    border: 1px solid rgba(212, 175, 55, 0.05);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    
+    /* Optimización de renderizado */
+    backface-visibility: hidden;
+    -webkit-font-smoothing: subpixel-antialiased;
+    flex-shrink: 0; /* Evita que las tarjetas se deformen en pantallas pequeñas */
+}
+
+/* Estado Activo (EL RESALTADO EN EL CENTRO) */
+.barbero-card.active {
+    transform: scale(1.1); /* Crece hacia el centro */
+    opacity: 1;
+    border: 2px solid #d4af37;
+    box-shadow: 0 0 40px rgba(212, 175, 55, 0.25);
+    z-index: 10;
+}
+
+/* 4. IMAGENES: Todas iguales y bien enfocadas */
+.barbero-card img {
+    width: 100%;      
+    height: 380px;    
+    object-fit: cover; 
+    object-position: center top; 
+    transition: filter 0.6s ease;
+}
+
+/* 5. TEXTO: Jerarquía visual */
+.barbero-info {
+    padding: 20px;
+    text-align: center;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.barbero-info h3 {
+    color: #ffffff;
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+    font-weight: 700;
+}
+
+.barbero-info p {
+    color: #d4af37;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 400;
+}
+
+/* --- SECCIÓN QUIÉNES SOMOS (UNIFICADA) --- */
+.quienes-somos {
+    padding: 100px 5%;
+    background-color: #0f0f0f;
+    color: #fff;
+    overflow: hidden; /* Evita desbordamientos laterales inesperados */
+}
+
+.qs-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.qs-info h2 {
+    color: #d4af37;
+    font-size: 2.5rem;
+    margin: 15px 0;
+    line-height: 1.2;
+}
+
+.qs-info p {
+    color: #ccc;
+    line-height: 1.8;
+    margin-bottom: 20px;
+}
+
+.qs-stats {
+    display: flex;
+    gap: 40px;
+    margin-top: 30px;
+    border-top: 1px solid #333;
+    padding-top: 20px;
+}
+
+.qs-stats strong {
+    display: block;
+    font-size: 2rem;
+    color: #d4af37;
+}
+
+.qs-locations h2 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+    text-align: center;
+    border-bottom: 2px solid #d4af37;
+    display: inline-block;
+}
+
+.location-card {
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    border: 1px solid #333;
+    transition: transform 0.3s;
+    width: 100%; /* Asegura que no se pase del contenedor */
+}
+
+.map-container {
+    margin-top: 15px;
+    border-radius: 8px;
+    overflow: hidden;
+    filter: grayscale(100%) invert(90%) contrast(90%);
+    width: 100%; /* Contenedor flexible */
+}
+
+/* Fuerza a los iframes de Google Maps a ser responsivos */
+.map-container iframe {
+    width: 100% !important;
+    height: 200px;
+    border: 0;
+}
+
+/* --- RESPONSIVO PARA CELULARES (CORREGIDO) --- */
+@media (max-width: 768px) {
+    .quienes-somos {
+        padding: 60px 20px; /* Reducimos el espacio lateral en móviles */
+    }
+
+    .qs-container {
+        grid-template-columns: 1fr; /* Una columna obligatoria */
+        gap: 40px; /* Menos espacio entre historia y locaciones */
+    }
+
+    .qs-info h2 {
+        font-size: 1.8rem; /* Título más pequeño para que no rompa la línea */
+        text-align: center;
+    }
+
+    .qs-info p {
+        font-size: 0.95rem;
+        text-align: center; /* Mejor estética en pantallas pequeñas */
+    }
+
+    .qs-stats {
+        justify-content: center; /* Centra las estadísticas */
+        gap: 30px;
+    }
+
+    .qs-stats strong {
+        font-size: 1.5rem;
+    }
+
+    .qs-locations h2 {
+        display: block; /* Centrado completo */
+        margin: 0 auto 30px auto;
+        width: fit-content;
+    }
+}
+
+/* ===================================================
+   AJUSTES RESPONSIVE (CELULARES Y TABLETS)
+   =================================================== */
+
+@media (max-width: 768px) {
+    /* 1. Navbar: Ocultar links o apilarlos */
+    .navbar {
+        padding: 1rem 3%;
+        flex-direction: column; /* Logo arriba, botón abajo */
+        gap: 15px;
+    }
+    
+    .nav-links {
+        display: none; /* Sugerencia: Ocultar links en móvil o usar menú hamburguesa */
+    }
+
+    /* 2. Hero Section: Ajustar textos grandes */
+    .hero-banner {
+        height: 60vh; /* Reducir altura en móvil */
+    }
+
+    .hero-overlay {
+        padding: 20px;
+        margin: 0 15px;
+    }
+
+    .hero-content h1 {
+        font-size: 2rem; /* Título más pequeño */
+    }
+
+    .hero-content p {
+        font-size: 1.1rem;
+    }
+
+    /* 3. Carrusel: EL AJUSTE MÁS IMPORTANTE */
+    .barberos-section h2 {
+        font-size: 1.8rem;
+        letter-spacing: 2px;
+    }
+
+    .barbero-card {
+        min-width: 260px; /* Tarjetas más delgadas para que no se corten */
+        max-width: 260px;
+        height: 420px;
+        margin: 0 15px;
+    }
+
+    .barbero-card img {
+        height: 300px; /* Imagen más pequeña */
+    }
+
+    .barbero-card.active {
+        transform: scale(1.05); /* Menos escala para evitar colisiones */
+    }
+    .carousel-container {
+        padding: 30px 0;
+    }
+
+    /* 4. Quiénes Somos: De 2 columnas a 1 */
+    .qs-container {
+        grid-template-columns: 1fr; /* Una sola columna */
+        gap: 40px;
+        padding: 0 10px;
+    }
+
+    .qs-info h2 {
+        font-size: 1.8rem;
+    }
+
+    .qs-stats {
+        gap: 20px;
+        justify-content: center;
+    }
+
+    .qs-stats strong {
+        font-size: 1.5rem;
+    }
+
+    /* 5. Mapas: Ajustar altura para que no ocupen toda la pantalla */
+    .map-container iframe {
+        height: 200px;
+    }
+}
+
+/* Ajuste para pantallas extra pequeñas (iPhone SE, etc.) */
+@media (max-width: 400px) {
+    .barbero-card {
+        min-width: 220px;
+        max-width: 220px;
+    }
+    
+    .hero-content h1 {
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .barbero-card {
+        min-width: 230px;
+        max-width: 230px;
+    }
+}
+
+/* decoracion para la tabla de servicios */
+
+.servicios-section {
+    padding: 100px 5%;
+    background-color: #121212;
+}
+
+.servicios-container {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr; /* La tabla es un poco más ancha */
+    gap: 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+    align-items: center;
+}
+
+/* Tabla de Precios Estilo Vintage */
+.tabla-precios {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+}
+
+.tabla-precios tr {
+    height: 50px;
+}
+
+.servicio-nombre {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.servicio-puntos {
+    color: #333;
+    overflow: hidden;
+    padding: 0 10px;
+    letter-spacing: 3px;
+}
+
+.servicio-precio {
+    color: #d4af37;
+    font-size: 1.3rem;
+    font-weight: bold;
+    text-align: right;
+    min-width: 100px; /* Evita que el precio se mueva si cambia la cifra */
+    font-family: 'Courier New', Courier, monospace; /* Opcional: estilo contable */
+}
+
+/* Columna de Imagen */
+/* Columna de Video (Actualizado) */
+.servicios-imagen {
+    position: relative;
+    border: 1px solid #d4af37;
+    padding: 15px;
+    background-color: #000; /* Fondo negro por si el video tarda en cargar */
+    overflow: visible; /* Para permitir que el overlay sobresalga */
+    display: flex;
+}
+
+/* Reemplazamos .servicios-imagen img por esto: */
+.video-servicios {
+    width: 100%;
+    height: 100%;
+    min-height: 450px; /* Ajusta según el largo de tu tabla */
+    object-fit: cover; /* Hace que el video actúe como fondo, recortándose si es necesario */
+    display: block;
+    transition: filter 0.5s ease;
+}
+
+
+.imagen-overlay {
+    position: absolute;
+    bottom: -20px;
+    right: -20px;
+    background: #d4af37;
+    color: #000;
+    padding: 20px;
+    font-style: italic;
+    font-weight: bold;
+    max-width: 200px;
+    z-index: 5; /* Asegura que esté por encima del video */
+}
+
+/* RESPONSIVE PARA SERVICIOS (Actualizado) */
+@media (max-width: 768px) {
+    .servicios-container {
+        grid-template-columns: 1fr;
+        gap: 60px; /* Un poco más de espacio por el overlay */
+    }
+    
+    .servicios-imagen {
+        order: -1; 
+    }
+
+    .video-servicios {
+        min-height: 300px; /* Video más corto en celulares */
+    }
+
+    .servicio-puntos {
+        display: none;
+    }
+}
+
+.main-footer {
+    background-color: #0a0a0a;
+    padding: 60px 5% 20px 5%;
+    border-top: 1px solid #1a1a1a;
+    color: #fff;
+    text-align: center;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-logo {
+    height: 60px;
+    margin-bottom: 25px;
+    filter: grayscale(1); /* Logo discreto en el footer */
+}
+
+.footer-socials {
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+}
+
+.footer-socials a {
+    color: #d4af37;
+    font-size: 1.8rem;
+    transition: transform 0.3s, color 0.3s;
+}
+
+.footer-socials a:hover {
+    color: #fff;
+    transform: translateY(-5px);
+}
+
+.footer-contact p {
+    color: #888;
+    font-size: 0.9rem;
+    margin: 5px 0;
+}
+
+/* --- Créditos y Login Oculto --- */
+.footer-bottom {
+    margin-top: 50px;
+    padding-top: 20px;
+    border-top: 1px solid #151515;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.creator-info {
+    font-size: 0.7rem; /* Muy pequeño y discreto */
+    color: #333; /* Color oscuro para que casi se pierda con el fondo */
+    text-align: left;
+    margin: 0;
+}
+
+.hidden-login-trigger {
+    color: #1a1a1a; /* Color muy oscuro, casi se pierde con el fondo */
+    text-decoration: none;
+    font-size: 1.2rem; /* Tamaño suficiente para ser clickeable */
+    cursor: pointer; /* Cambia el cursor a "manito" para indicar que es un link */
+    transition: color 0.3s ease; /* Transición suave al pasar el mouse */
+    padding: 5px; /* Área de click un poco más grande para móviles */
+}
+
+.hidden-login-trigger:hover {
+    color: #333; /* Un poco más claro al pasar el mouse */
+}
+
+/* Ajuste responsive para el tamaño del icono en móviles */
+@media (max-width: 768px) {
+    .hidden-login-trigger {
+        font-size: 1.5rem; /* Un poco más grande en móviles para facilitar el toque */
+    }
+}
