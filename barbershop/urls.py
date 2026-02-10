@@ -17,11 +17,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from inicio.views import home
-# 1. Agrega estas dos importaciones nuevas:
 from django.conf import settings
 from django.conf.urls.static import static
+from usuarios import views 
 
 urlpatterns = [
+    path('reservar/', views.reservar_cita, name='reservar_cita'),
+    path('ajax/obtener-barberos/', views.obtener_barberos_por_sede, name='ajax_barberos'),
     path('admin/', admin.site.urls),
     path('', home, name="home"),
 ] 

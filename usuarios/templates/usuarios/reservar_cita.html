@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reservar Cita | DiegoBarberia</title>
+    <link rel="stylesheet" href="{% static 'inicio/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'inicio/css/booking.css' %}">
+</head>
+<body>
+    <div class="booking-container">
+        <h2>Paso 1: Selecciona tu Sede</h2>
+        <div class="sedes-grid">
+            {% for sede in sedes %}
+            <div class="sede-card" onclick="seleccionarSede('{{ sede.id }}')">
+                <h3>{{ sede.nombre }}</h3>
+                <p>{{ sede.direccion }}</p>
+                <button class="btn-seleccionar">Elegir esta sede</button>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div id="seccion-barberos" style="display:none;">
+            <hr>
+            <h2>Paso 2: Selecciona tu Barbero</h2>
+            <div id="lista-barberos" class="barberos-grid"></div>
+        </div>
+
+        <div id="seccion-calendario" style="display:none; background: #fff; padding: 20px; border-radius: 15px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <h3 id="titulo-calendario" style="text-align: center; color: #1a1a1a;"></h3>
+            <div id="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 20px;"></div>
+
+            <div id="horas-container" style="display:none; margin-top: 20px; border-top: 2px solid #eee; padding-top: 20px;">
+                <h4 style="color: #333;">Horas disponibles para el <span id="fecha-seleccionada"></span></h4>
+                <div id="lista-horas" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-reserva" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Confirmar Reserva</h3>
+            <p id="detalle-reserva-final" style="font-weight: bold; color: #d4af37;"></p>
+            <input type="text" id="nombre-cliente" placeholder="Tu nombre" style="width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box;">
+            <input type="tel" id="telefono-cliente" placeholder="WhatsApp (Ej: 321...)" style="width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box;">
+            
+            <button onclick="enviarConfirmacion()" class="btn-whatsapp">
+                Enviar Código Confirmación
+            </button>
+            <button onclick="cerrarModal()" style="background: none; border: none; color: #777; margin-top: 15px; cursor: pointer; text-decoration: underline;">
+                Cancelar
+            </button>
+        </div>
+    </div>
+
+    <script src="{% static 'inicio/js/booking.js' %}"></script>
+</body>
+</html>

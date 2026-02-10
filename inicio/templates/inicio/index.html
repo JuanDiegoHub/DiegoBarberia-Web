@@ -21,7 +21,9 @@
         </div>
 
         <div class="nav-right">
-            <button class="btn-cita" onclick="saludar()">Agendar Cita</button>
+            <a href="{% url 'reservar_cita' %}" class="btn-cita" style="text-decoration: none; display: inline-block; text-align: center;">
+                Agendar Cita
+            </a>
         </div>
     </nav>
 
@@ -31,7 +33,9 @@
                 <h1>Donde el estilo clásico</h1>
                 <p>Se encuentra con la perfección moderna.</p>
                 <p class="subtext">Tu nuevo corte te espera.</p>
-                <button class="btn-cita-banner">Agendar Cita</button>
+                <a href="{% url 'reservar_cita' %}" class="btn-cita-banner" style="text-decoration: none; display: inline-block;">
+                Agendar Cita
+                </a>
             </div>
         </div>
     </header>
@@ -153,7 +157,7 @@
                 Diseñado por Juan Diego Oviedo | Tel: 3217702237
             </p>
             
-            <a href="/admin" class="hidden-login-trigger" title="Acceso Personal"><i class="fas fa-lock"></i></a>
+            <a href="admin/" class="hidden-login-trigger" title="Acceso Personal"><i class="fas fa-lock"></i></a>
         </div>
     </div>
 </footer>
