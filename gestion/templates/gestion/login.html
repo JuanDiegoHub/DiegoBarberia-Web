@@ -144,6 +144,34 @@
         .session-toast.error-toast .toast-progress-bar-fill {
             background: linear-gradient(90deg, #e05555, #ff7b7b);
         }
+        .btn-back {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f5f5f5;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-back:hover {
+            background: #e0e0e0;
+            color: #1a1a1a;
+        }
+
+        .btn-back .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        .login-card {
+            position: relative;
+        }
     </style>
 </head>
 <body>
@@ -195,6 +223,9 @@
 
     <div class="main-wrapper">
         <div class="login-card">
+            <a href="{% url 'inicio' %}" class="btn-back" title="Volver al Inicio">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
             <div class="card-header">
                 <h1>Iniciar Sesión</h1>
                 <p>Ingresa tus credenciales para acceder a tu cuenta</p>
