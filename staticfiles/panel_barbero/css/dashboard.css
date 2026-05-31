@@ -1,0 +1,220 @@
+/* Variables específicas para el panel del barbero */
+:root {
+    --gold-barber: #c5a059;
+    --dark-barber: #1a1a1a;
+    --bg-light: #f8fafc;
+    --success: #2ecc71;
+    --info: #3498db;
+    --text-muted: #718096;
+}
+
+.dashboard-barbero {
+    padding: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+/* Encabezado */
+.welcome-section {
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+
+.profile-brief {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.avatar-sm {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--gold-barber);
+}
+
+.profile-brief h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--dark-barber);
+}
+
+.profile-brief p {
+    margin: 5px 0 0 0;
+    color: var(--text-muted);
+}
+
+/* Tarjetas de Resumen */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+
+.icon-blue { color: var(--info); font-size: 32px; }
+.icon-gold { color: var(--gold-barber); font-size: 32px; }
+
+.stat-number {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* Agenda / Lista de Citas */
+.agenda-section h2 {
+    font-size: 1.25rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.agenda-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.agenda-item {
+    background: white;
+    padding: 18px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    border-left: 6px solid var(--dark-barber);
+    transition: transform 0.2s;
+}
+
+.agenda-item:hover {
+    transform: scale(1.01);
+}
+
+.time-box {
+    background: var(--bg-light);
+    padding: 10px;
+    border-radius: 10px;
+    min-width: 80px;
+    text-align: center;
+}
+
+.time-box span {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--dark-barber);
+}
+
+.client-info {
+    flex-grow: 1;
+    margin: 0 20px;
+}
+
+.client-info h4 {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.client-info p {
+    margin: 2px 0 0 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* Badges de estado */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-badge.confirmada { background: #eafaf1; color: var(--success); }
+.status-badge.pendiente { background: #fff9db; color: #f59e0b; }
+
+.btn-check {
+    color: var(--success);
+    transition: 0.2s;
+}
+
+.btn-check:hover { transform: scale(1.2); }
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 20px;
+    color: var(--text-muted);
+}
+
+/* ==========================================================================
+   DISEÑO RESPONSIVO PARA PANEL DE BARBEROS
+   ========================================================================== */
+
+@media (max-width: 576px) {
+    /* Perfil apilado verticalmente */
+    .profile-brief {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+    
+    /* Centrar avatar en móviles */
+    .avatar-sm {
+        margin: 0 auto;
+    }
+
+    /* Apilar items de agenda para que quepan en móviles */
+    .agenda-item {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 15px;
+        padding: 20px;
+    }
+    
+    .time-box {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .client-info {
+        margin: 0;
+        width: 100%;
+    }
+
+    .agenda-item .status-badge {
+        width: fit-content;
+    }
+
+    .agenda-item .actions {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        border-top: 1px solid var(--bg-light);
+        padding-top: 12px;
+    }
+}
