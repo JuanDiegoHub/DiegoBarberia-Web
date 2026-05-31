@@ -112,7 +112,7 @@ def dashboard_view(request):
 
 @login_required
 def lista_barberos(request):
-    if request.es_dueno_o_superuser(user):
+    if es_dueno_o_superuser(request.user):
         barberos = Barbero.objects.all()
     else:
         # Accedemos directamente a la sede que administra el usuario
