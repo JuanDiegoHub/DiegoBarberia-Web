@@ -1,0 +1,179 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Mis Citas | BarberApp{% endblock %}
+
+{% block extra_css %}
+<style>
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -15px;
+        margin-left: -15px;
+    }
+    .col-md-4 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+        padding: 0 15px;
+    }
+    .col-md-2 {
+        flex: 0 0 16.666667%;
+        max-width: 16.666667%;
+        padding: 0 15px;
+    }
+    .align-items-end {
+        align-items: flex-end;
+    }
+    .g-3 {
+        gap: 1rem 0;
+    }
+    .mb-4 {
+        margin-bottom: 1.5rem;
+    }
+    .p-4 {
+        padding: 1.5rem;
+    }
+    .gap-2 {
+        gap: 0.5rem;
+    }
+    .d-flex {
+        display: flex !important;
+    }
+    .justify-content-between {
+        justify-content: space-between !important;
+    }
+    .align-items-center {
+        align-items: center !important;
+    }
+    .w-100 {
+        width: 100% !important;
+    }
+    .mt-5 {
+        margin-top: 3rem !important;
+    }
+    .mb-1 {
+        margin-bottom: 0.25rem !important;
+    }
+    .pb-3 {
+        padding-bottom: 1rem !important;
+    }
+    .text-center {
+        text-align: center !important;
+    }
+    .py-5 {
+        padding-top: 3rem !important;
+        padding-bottom: 3rem !important;
+    }
+    
+    @media (max-width: 768px) {
+        .col-md-4, .col-md-2 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom-minimal">
+        <div>
+            <h2 class="mb-1">Mis Citas</h2>
+            <p class="text-muted mb-0 small">Historial y agenda completa de tus clientes asignados</p>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card card-minimal mb-4 p-4">
+        <form method="GET" action="" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="fecha" class="form-label">Filtrar por Fecha</label>
+                <input type="date" id="fecha" name="fecha" value="{{ fecha_filtro|default:'' }}" class="form-control-minimal w-100" style="border-radius: 6px; padding: 10px; border: 1px solid var(--border-color); height: 42px; background-color: #f8fafc;">
+            </div>
+            
+            <div class="col-md-4">
+                <label for="estado" class="form-label">Filtrar por Estado</label>
+                <select id="estado" name="estado" class="form-select-minimal w-100" style="height: 42px; padding: 10px 15px;">
+                    <option value="">Todos los estados</option>
+                    <option value="Pendiente" {% if estado_filtro == "Pendiente" %}selected{% endif %}>Pendiente</option>
+                    <option value="Confirmada" {% if estado_filtro == "Confirmada" %}selected{% endif %}>Confirmada</option>
+                    <option value="Completada" {% if estado_filtro == "Completada" %}selected{% endif %}>Completada</option>
+                    <option value="Cancelada" {% if estado_filtro == "Cancelada" %}selected{% endif %}>Cancelada</option>
+                </select>
+            </div>
+
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn-barberapp w-100" style="height: 42px;">Aplicar Filtros</button>
+                <a href="{% url 'mis_citas_barbero' %}" class="btn-barberapp-outline d-flex align-items-center justify-content-center" style="height: 42px; width: 42px; padding: 0;" title="Limpiar Filtros">
+                    <span class="material-symbols-outlined">restart_alt</span>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de Citas -->
+    <div class="card card-minimal">
+        <div class="table-responsive">
+            <table class="table table-minimal">
+                <thead>
+                    <tr>
+                        <th style="width: 20%">Fecha / Hora</th>
+                        <th style="width: 30%">Cliente (Teléfono)</th>
+                        <th style="width: 20%">Verificación</th>
+                        <th style="width: 20%">Estado</th>
+                        <th style="width: 10%" class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cita in citas %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ cita.fecha|date:"d/m/Y" }}</div>
+                            <div class="text-muted small">{{ cita.hora|time:"H:i" }}</div>
+                        </td>
+                        <td>
+                            <span class="text-dark">{{ cita.telefono }}</span>
+                        </td>
+                        <td>
+                            {% if cita.verificado %}
+                                <span class="badge-status verificado" style="color: #00695c; background: #e0f2f1; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">Verificado</span>
+                            {% else %}
+                                <span class="badge-status no-verificado" style="color: #e65100; background: #fff3e0; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">Sin Verificar</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="state-badge {{ cita.estado|lower }}" style="padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; display: inline-block;
+                                {% if cita.estado == 'Confirmada' %}color: #2e7d32; background-color: #e8f5e9;
+                                {% elif cita.estado == 'Pendiente' %}color: #ef6c00; background-color: #fff3e0;
+                                {% elif cita.estado == 'Completada' %}color: #1565c0; background-color: #e3f2fd;
+                                {% else %}color: #c62828; background-color: #ffebee;{% endif %}">
+                                {{ cita.get_estado_display }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex gap-1 justify-content-center">
+                                {% if cita.estado == 'Pendiente' or cita.estado == 'Confirmada' %}
+                                <a href="{% url 'cambiar_estado_cita' cita.id 'Completada' %}?next=mis_citas_barbero" class="btn-icon" style="color: #2e7d32;" title="Completar Servicio">
+                                    <span class="material-symbols-outlined">check_circle</span>
+                                </a>
+                                <a href="{% url 'cambiar_estado_cita' cita.id 'Cancelada' %}?next=mis_citas_barbero" class="btn-icon btn-icon-danger" style="color: #c62828;" title="Cancelar Cita">
+                                    <span class="material-symbols-outlined">cancel</span>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <span class="material-symbols-outlined fs-1 d-block mb-3" style="font-size: 3rem;">calendar_today</span>
+                            No tienes citas registradas con estos filtros.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

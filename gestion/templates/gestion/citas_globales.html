@@ -1,0 +1,263 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Citas Globales | BarberApp{% endblock %}
+
+{% block extra_css %}
+<style>
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -15px;
+        margin-left: -15px;
+    }
+    .col-md-3 {
+        flex: 0 0 25%;
+        max-width: 25%;
+        padding: 0 15px;
+    }
+    .col-md-2 {
+        flex: 0 0 16.666667%;
+        max-width: 16.666667%;
+        padding: 0 15px;
+    }
+    .align-items-end {
+        align-items: flex-end;
+    }
+    .g-3 {
+        gap: 1rem 0;
+    }
+    .mb-4 {
+        margin-bottom: 1.5rem;
+    }
+    .p-4 {
+        padding: 1.5rem;
+    }
+    .gap-2 {
+        gap: 0.5rem;
+    }
+    .d-flex {
+        display: flex !important;
+    }
+    .justify-content-between {
+        justify-content: space-between !important;
+    }
+    .align-items-center {
+        align-items: center !important;
+    }
+    .w-100 {
+        width: 100% !important;
+    }
+    .mt-5 {
+        margin-top: 3rem !important;
+    }
+    .mb-1 {
+        margin-bottom: 0.25rem !important;
+    }
+    .pb-3 {
+        padding-bottom: 1rem !important;
+    }
+    .text-center {
+        text-align: center !important;
+    }
+    .py-5 {
+        padding-top: 3rem !important;
+        padding-bottom: 3rem !important;
+    }
+    
+    @media (max-width: 768px) {
+        .row {
+            margin-right: 0;
+            margin-left: 0;
+        }
+        .col-md-3, .col-md-2 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            padding: 0;
+            margin-bottom: 10px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom-minimal">
+        <div>
+            <h2 class="mb-1">Citas Globales</h2>
+            <p class="text-muted mb-0 small">Consulta y administra las citas agendadas</p>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card card-minimal mb-4 p-4">
+        <form method="GET" action="" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="fecha" class="form-label">Fecha</label>
+                <input type="date" id="fecha" name="fecha" value="{{ fecha_filtro|default:'' }}" class="form-control-minimal w-100" style="border-radius: 6px; padding: 0 15px; border: 1px solid var(--border-color); height: 42px; background-color: #f8fafc; box-sizing: border-box;">
+            </div>
+            
+            <div class="col-md-3">
+                <label for="barbero" class="form-label">Barbero</label>
+                <select id="barbero" name="barbero" class="form-select-minimal w-100" style="height: 42px; padding: 0 15px; box-sizing: border-box;">
+                    <option value="">Todos los barberos</option>
+                    {% for barbero in barberos %}
+                        <option value="{{ barbero.id }}" {% if barbero_filtro == barbero.id|stringformat:"s" %}selected{% endif %}>
+                            {{ barbero.nombre }} {{ barbero.apellido }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {% if user.is_superuser %}
+            <div class="col-md-2">
+                <label for="sede" class="form-label">Sede</label>
+                <select id="sede" name="sede" class="form-select-minimal w-100" style="height: 42px; padding: 0 15px; box-sizing: border-box;">
+                    <option value="">Todas las sedes</option>
+                    {% for s in sedes %}
+                        <option value="{{ s.id }}" {% if sede_filtro == s.id|stringformat:"s" %}selected{% endif %}>
+                            {{ s.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <div class="col-md-2">
+                <label for="estado" class="form-label">Estado</label>
+                <select id="estado" name="estado" class="form-select-minimal w-100" style="height: 42px; padding: 0 15px; box-sizing: border-box;">
+                    <option value="">Todos los estados</option>
+                    <option value="Pendiente" {% if estado_filtro == "Pendiente" %}selected{% endif %}>Pendiente</option>
+                    <option value="Confirmada" {% if estado_filtro == "Confirmada" %}selected{% endif %}>Confirmada</option>
+                    <option value="Completada" {% if estado_filtro == "Completada" %}selected{% endif %}>Completada</option>
+                    <option value="Cancelada" {% if estado_filtro == "Cancelada" %}selected{% endif %}>Cancelada</option>
+                </select>
+            </div>
+
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn-barberapp w-100" style="height: 42px;">Filtrar</button>
+                <a href="{% url 'citas_globales' %}" class="btn-barberapp-outline d-flex align-items-center justify-content-center" style="height: 42px; width: 42px; padding: 0;" title="Limpiar Filtros">
+                    <span class="material-symbols-outlined">restart_alt</span>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de Citas -->
+    <div class="card card-minimal">
+        <div class="table-responsive">
+            <table class="table table-minimal">
+                <thead>
+                    <tr>
+                        <th style="width: 10%" class="text-center">Acciones</th>
+                        <th style="width: 15%">Fecha/Hora</th>
+                        <th style="width: 20%">Cliente (Teléfono)</th>
+                        <th style="width: 20%">Barbero</th>
+                        <th style="width: 15%">Sede</th>
+                        <th style="width: 10%">Verificación</th>
+                        <th style="width: 10%">Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cita in citas %}
+                    <tr>
+                        <td class="text-center">
+                            <div class="d-flex gap-1 justify-content-center">
+                                {% if cita.estado == 'Pendiente' or cita.estado == 'Confirmada' %}
+                                <a href="javascript:void(0)" onclick="confirmAction('{% url 'cambiar_estado_cita' cita.id 'Completada' %}?next=citas_globales', 'completar')" class="btn-icon" style="color: #2e7d32;" title="Completar Servicio">
+                                    <span class="material-symbols-outlined">check_circle</span>
+                                </a>
+                                <a href="javascript:void(0)" onclick="confirmAction('{% url 'cambiar_estado_cita' cita.id 'Cancelada' %}?next=citas_globales', 'cancelar')" class="btn-icon btn-icon-danger" style="color: #c62828;" title="Cancelar Cita">
+                                    <span class="material-symbols-outlined">cancel</span>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-bold">{{ cita.fecha|date:"d/m/Y" }}</div>
+                            <div class="text-muted small">{{ cita.hora|time:"H:i" }}</div>
+                        </td>
+                        <td>
+                            <span class="text-dark">{{ cita.telefono }}</span>
+                        </td>
+                        <td>
+                            {{ cita.barbero.nombre }} {{ cita.barbero.apellido }}
+                        </td>
+                        <td>
+                            <span class="sede-tag {% if 'Centro' in cita.barbero.sede.nombre %}sede-tag-centro{% elif 'Ricaute' in cita.barbero.sede.nombre %}sede-tag-ricaute{% else %}admin-tag-none{% endif %}">
+                                {{ cita.barbero.sede.nombre }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if cita.verificado %}
+                                <span class="badge-status verificado" style="color: #00695c; background: #e0f2f1; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">Verificado</span>
+                            {% else %}
+                                <span class="badge-status no-verificado" style="color: #e65100; background: #fff3e0; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">Sin Verificar</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="state-badge {{ cita.estado|lower }}" style="padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; display: inline-block;
+                                {% if cita.estado == 'Confirmada' %}color: #2e7d32; background-color: #e8f5e9;
+                                {% elif cita.estado == 'Pendiente' %}color: #ef6c00; background-color: #fff3e0;
+                                {% elif cita.estado == 'Completada' %}color: #1565c0; background-color: #e3f2fd;
+                                {% else %}color: #c62828; background-color: #ffebee;{% endif %}">
+                                {{ cita.get_estado_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <span class="material-symbols-outlined fs-1 d-block mb-3" style="font-size: 3rem;">calendar_today</span>
+                            No se encontraron citas con los filtros especificados.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmación -->
+<div id="confirmModal" class="modal-overlay" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.6); z-index: 9999;">
+    <div class="modal-content" style="background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1); animation: modalIn 0.3s ease-out;">
+        <h3 id="confirmTitle" style="margin-top: 0; color: #1a1a1a;">Confirmar Acción</h3>
+        <p id="confirmMessage" style="color: #666; margin-bottom: 25px;">¿Estás seguro de continuar?</p>
+        <div class="d-flex justify-content-center gap-2">
+            <button onclick="closeConfirmModal()" class="btn-barberapp-outline" style="min-width: 120px; border-radius: 8px;">Cancelar</button>
+            <a id="confirmBtn" href="#" class="btn-barberapp" style="min-width: 120px; text-decoration: none; border-radius: 8px;">Aceptar</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmAction(url, actionType) {
+    const modal = document.getElementById('confirmModal');
+    const title = document.getElementById('confirmTitle');
+    const message = document.getElementById('confirmMessage');
+    const confirmBtn = document.getElementById('confirmBtn');
+    
+    if (actionType === 'completar') {
+        title.innerText = 'Completar Cita';
+        message.innerText = '¿Estás seguro de marcar esta cita como completada?';
+        confirmBtn.style.backgroundColor = '#15803d'; // Verde oscuro
+        confirmBtn.style.borderColor = '#15803d';
+        confirmBtn.style.color = '#ffffff';
+    } else if (actionType === 'cancelar') {
+        title.innerText = 'Cancelar Cita';
+        message.innerText = '¿Estás seguro de cancelar esta cita? Esta acción no se puede deshacer.';
+        confirmBtn.style.backgroundColor = '#b91c1c'; // Rojo oscuro
+        confirmBtn.style.borderColor = '#b91c1c';
+        confirmBtn.style.color = '#ffffff';
+    }
+    
+    confirmBtn.href = url;
+    modal.style.display = 'flex';
+}
+
+function closeConfirmModal() {
+    document.getElementById('confirmModal').style.display = 'none';
+}
+</script>
+{% endblock %}

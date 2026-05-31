@@ -1,0 +1,231 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}Barbería Dashboard{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'gestion/css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'gestion/css/admin_style.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {% block extra_css %}{% endblock %}
+    
+    <style>
+        /* Estilos para el Menú Inferior (Móvil) */
+        .mobile-nav {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-wrapper {
+                margin-left: 0 !important;
+                padding-bottom: 80px; /* Espacio para que el menú no tape el contenido */
+            }
+
+            .mobile-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: #1a1a1a; /* Color oscuro profesional */
+                height: 70px;
+                justify-content: space-around;
+                align-items: center;
+                border-top: 2px solid #c5a059;
+                z-index: 1000;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+            }
+
+            .mobile-nav .nav-item-mobile {
+                color: #888;
+                text-decoration: none;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                font-size: 0.7rem;
+                transition: 0.3s;
+            }
+
+            .mobile-nav .nav-item-mobile.active, 
+            .mobile-nav .nav-item-mobile:active {
+                color: #c5a059;
+            }
+
+            .mobile-nav span {
+                font-size: 24px;
+                margin-bottom: 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <span class="material-symbols-outlined gold-icon">content_cut</span>
+                <h2>BarberApp</h2>
+            </div>
+            <nav class="sidebar-nav">
+                {% if user.barbero %}
+                    <a href="{% url 'dashboard_barbero' %}" class="nav-item">
+                        <span class="material-symbols-outlined">dashboard</span> Mi Agenda
+                    </a>
+                    <a href="{% url 'mis_citas_barbero' %}" class="nav-item">
+                        <span class="material-symbols-outlined">calendar_month</span> Mis Citas
+                    </a>
+                    <a href="{% url 'mi_horario_barbero' %}" class="nav-item">
+                        <span class="material-symbols-outlined">schedule</span> Mi Horario
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="material-symbols-outlined">payments</span> Mis Finanzas
+                    </a>
+                {% else %}
+                    <a href="{% url 'dashboard' %}" class="nav-item">
+                        <span class="material-symbols-outlined">dashboard</span> Inicio
+                    </a>
+                    <a href="{% url 'citas_globales' %}" class="nav-item">
+                        <span class="material-symbols-outlined">calendar_month</span> Citas Globales
+                    </a>
+                    <a href="{% url 'lista_barberos' %}" class="nav-item">
+                        <span class="material-symbols-outlined">group</span> Barberos
+                    </a>
+                    {% if user.is_superuser %}
+                    <a href="{% url 'lista_administradores' %}" class="nav-item">
+                        <span class="material-symbols-outlined">admin_panel_settings</span> Administradores
+                    </a>
+                    <a href="{% url 'servicios_list' %}" class="nav-item">
+                        <span class="material-symbols-outlined">styler</span> Servicios
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'horarios_sede' %}" class="nav-item">
+                        <span class="material-symbols-outlined">schedule</span> Horarios
+                    </a>
+                {% endif %}
+            </nav>
+        </aside>
+        
+        <!-- Overlay para el sidebar móvil -->
+        <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+        <main class="main-wrapper">
+            <header class="topbar">
+                <div class="topbar-left" style="display: flex; align-items: center;">
+                    <button id="sidebarToggle" class="sidebar-toggle-btn" aria-label="Toggle Menu">
+                        <span class="material-symbols-outlined">menu</span>
+                    </button>
+                    <div class="user-info">
+                        <span class="material-symbols-outlined">account_circle</span>
+                        <span>{% if user.barbero %}{{ user.barbero.nombre }}{% else %}{{ user.username }}{% endif %}</span>
+                    </div>
+                </div>
+                <a href="{% url 'logout' %}" class="logout-btn">
+                    <span class="material-symbols-outlined">logout</span> Salir
+                </a>
+            </header>
+            
+            <section class="content">
+                {% block content %}
+                {% endblock %}
+            </section>
+        </main>
+    </div>
+
+    {# --- MENÚ INFERIOR SOLO PARA MÓVIL (BARBEROS) --- #}
+    {% if user.barbero %}
+    <nav class="mobile-nav">
+        <a href="{% url 'dashboard_barbero' %}" class="nav-item-mobile">
+            <span class="material-symbols-outlined">home</span>
+            <span>Inicio</span>
+        </a>
+        <a href="{% url 'mis_citas_barbero' %}" class="nav-item-mobile">
+            <span class="material-symbols-outlined">calendar_month</span>
+            <span>Citas</span>
+        </a>
+        <a href="#" class="nav-item-mobile">
+            <span class="material-symbols-outlined">payments</span>
+            <span>Finanzas</span>
+        </a>
+        <a href="{% url 'logout' %}" class="nav-item-mobile">
+            <span class="material-symbols-outlined">logout</span>
+            <span>Salir</span>
+        </a>
+    </nav>
+    {% endif %}
+
+    {% if messages %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            });
+            {% for message in messages %}
+                let iconType = 'info';
+                {% if message.tags == 'success' %}
+                    iconType = 'success';
+                {% elif message.tags == 'warning' %}
+                    iconType = 'warning';
+                {% elif message.tags == 'error' %}
+                    iconType = 'error';
+                {% endif %}
+                
+                Toast.fire({
+                    icon: iconType,
+                    title: '{{ message|escapejs }}'
+                });
+            {% endfor %}
+        });
+    </script>
+    {% endif %}
+    
+    <!-- Lógica JS para control del sidebar móvil -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggleBtn = document.getElementById("sidebarToggle");
+            const sidebar = document.querySelector(".sidebar");
+            const overlay = document.getElementById("sidebarOverlay");
+
+            if (toggleBtn && sidebar && overlay) {
+                function openSidebar() {
+                    sidebar.classList.add("active");
+                    overlay.classList.add("active");
+                    document.body.style.overflow = "hidden"; // Evita scroll de fondo
+                }
+
+                function closeSidebar() {
+                    sidebar.classList.remove("active");
+                    overlay.classList.remove("active");
+                    document.body.style.overflow = ""; // Restaura scroll
+                }
+
+                toggleBtn.addEventListener("click", function(e) {
+                    e.stopPropagation();
+                    if (sidebar.classList.contains("active")) {
+                        closeSidebar();
+                    } else {
+                        openSidebar();
+                    }
+                });
+
+                overlay.addEventListener("click", closeSidebar);
+
+                // Cierra la barra lateral al hacer click en cualquier link
+                const navLinks = sidebar.querySelectorAll(".nav-item");
+                navLinks.forEach(link => {
+                    link.addEventListener("click", closeSidebar);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+{% extends 'gestion/base.html' %}
+
+{% block content %}
+<div class="form-wrapper">
+    <div class="form-container">
+        <h2>{% if editando %}Editar Barbero: {{ barbero.nombre }}{% else %}Registrar Nuevo Barbero{% endif %}</h2>
+        <form method="POST" enctype="multipart/form-data" id="barberoForm">
+            {% csrf_token %}
+            
+            <div class="form-body">
+                {# --- DATOS PERSONALES --- #}
+                <div class="form-group">
+                    {{ form.nombre.label_tag }}
+                    {{ form.nombre }}
+                </div>
+
+                <div class="form-group">
+                    {{ form.apellido.label_tag }}
+                    {{ form.apellido }}
+                </div>
+
+                {# --- CREDENCIALES DE LOGIN (Solo al crear) --- #}
+                {% if not editando %}
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.username.label_tag }}
+                        {{ form.username }}
+                    </div>
+                    <div class="form-group password-wrapper">
+                        {{ form.password.label_tag }}
+                        <div class="input-with-icon">
+                            {{ form.password }}
+                            <span class="material-symbols-outlined toggle-password" id="togglePassword">visibility</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="form-group">
+                    {{ form.especialidad.label_tag }}
+                    {{ form.especialidad }}
+                </div>
+
+                {# --- CONFIGURACIÓN DE SEDE Y ESTADO --- #}
+                <div class="form-row">
+                    {# La Sede y el Estado se ocultan si no es Superusuario para automatizar el proceso #}
+                    <div class="form-group" {% if not user.is_superuser %}style="display: none;"{% endif %}>
+                        {{ form.sede.label_tag }}
+                        {{ form.sede }}
+                    </div>
+                    
+                    <div class="form-group" {% if not user.is_superuser %}style="display: none;"{% endif %}>
+                        {{ form.estado.label_tag }}
+                        {{ form.estado }}
+                    </div>
+                </div>
+
+                {# --- CARGA DE IMAGEN --- #}
+                <div class="form-group">
+                    <label>Foto del Barbero</label>
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">
+                            <span class="material-symbols-outlined">cloud_upload</span>
+                        </div>
+                        <p>Arrastra la imagen aquí o haz clic</p>
+                        <span id="fileNameDisplay" class="file-name">Ningún archivo seleccionado</span>
+                        
+                        <div style="display: none;">
+                            {{ form.imagen }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-save">Guardar Barbero</button>
+                <a href="{% url 'lista_barberos' %}" class="btn-cancel">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Estructura Global */
+    .form-wrapper, .form-container, .form-container * { box-sizing: border-box; }
+    .form-wrapper { padding: 20px; display: flex; justify-content: center; min-height: 80vh; align-items: center; }
+    .form-container { background: #ffffff; padding: 35px; border-radius: 20px; width: 100%; max-width: 550px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; font-family: 'Inter', sans-serif; }
+    .form-container h2 { color: #1a1a1a; font-size: 1.6rem; margin-top: 0; margin-bottom: 25px; text-align: center; font-weight: 700; }
+    
+    .form-group { margin-bottom: 18px; width: 100%; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #444; font-size: 0.9rem; }
+    
+    /* Inputs Estilizados */
+    input[type="text"], input[type="password"], select { 
+        width: 100% !important; padding: 12px 15px; border: 2px solid #edf2f7; border-radius: 10px; 
+        background-color: #f8fafc; font-size: 1rem; transition: all 0.3s ease; display: block; 
+    }
+    input:focus, select:focus { outline: none; border-color: #1a1a1a; background-color: #fff; box-shadow: 0 0 0 4px rgba(26, 26, 26, 0.05); }
+
+    /* Ojito de Contraseña */
+    .input-with-icon { position: relative; display: flex; align-items: center; }
+    .toggle-password { position: absolute; right: 15px; cursor: pointer; color: #718096; user-select: none; transition: color 0.2s; }
+    .toggle-password:hover { color: #1a1a1a; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+    /* Zona de Carga de Archivos */
+    .upload-area { width: 100%; padding: 30px 15px; border: 2px dashed #cbd5e0; border-radius: 12px; background-color: #f8fafc; text-align: center; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; }
+    .upload-area:hover, .upload-area.highlight { border-color: #1a1a1a; background-color: #f1f5f9; }
+    .upload-icon { color: #a0aec0; margin-bottom: 10px; }
+    .upload-icon span { font-size: 2.5rem; }
+    .file-name { margin-top: 8px; font-size: 0.8rem; color: #a0aec0; font-style: italic; word-break: break-all; }
+
+    /* Botones de Acción */
+    .form-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 25px; }
+    .btn-save { background: #1a1a1a; color: white; padding: 14px; border: none; border-radius: 10px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.3s; }
+    .btn-save:hover { background: #000; transform: translateY(-1px); }
+    .btn-cancel { text-align: center; color: #718096; text-decoration: none; font-size: 0.9rem; padding: 8px; }
+
+    @media (min-width: 480px) {
+        .form-actions { flex-direction: row; justify-content: center; align-items: center; }
+        .btn-save { width: 220px; }
+    }
+</style>
+
+<script>
+    // --- LÓGICA DEL OJITO PARA CONTRASEÑA ---
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.querySelector('input[name="password"]');
+
+    if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.textContent = type === 'password' ? 'visibility' : 'visibility_off';
+        });
+    }
+
+    // --- LÓGICA DE CARGA DE IMAGEN (Drag & Drop) ---
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.querySelector('input[type="file"]');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+    if (uploadArea && fileInput) {
+        uploadArea.onclick = () => fileInput.click();
+
+        fileInput.onchange = () => {
+            if (fileInput.files.length > 0) updateUI(fileInput.files[0].name);
+        };
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => {
+            uploadArea.addEventListener(e, (evt) => {
+                evt.preventDefault();
+                evt.stopPropagation();
+            }, false);
+        });
+
+        uploadArea.ondragover = () => uploadArea.classList.add('highlight');
+        uploadArea.ondragleave = () => uploadArea.classList.remove('highlight');
+
+        uploadArea.ondrop = (e) => {
+            uploadArea.classList.remove('highlight');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                updateUI(files[0].name);
+            }
+        };
+    }
+
+    function updateUI(name) {
+        fileNameDisplay.textContent = name;
+        fileNameDisplay.style.color = "#1a1a1a";
+        uploadArea.style.borderColor = "#2ecc71";
+        uploadArea.style.backgroundColor = "#f0fff4";
+    }
+</script>
+{% endblock %}

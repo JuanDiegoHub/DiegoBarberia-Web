@@ -1,0 +1,103 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom-minimal">
+        <div>
+            <h2 class="mb-1">Gestión de Administradores</h2>
+            <p class="text-muted mb-0 small">Asigna encargados a tus sedes de Ibagué</p>
+        </div>
+        
+        <div class="d-flex align-items-center gap-2">
+            <a href="{% url 'asignar_admin_sede' %}" class="btn-barberapp-outline d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined fs-6">link</span>
+                Asignar Sede
+            </a>
+            
+            <a href="{% url 'crear_admin' %}" class="btn-barberapp-outline d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined fs-6">person_add</span>
+                Nuevo Administrador
+            </a>
+
+            <a href="{% url 'crear_sede' %}" class="btn-barberapp d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined fs-6">add_business</span>
+                Crear Sede
+            </a>
+        </div>
+    </div>
+
+    <div class="card card-minimal">
+        <div class="table-responsive">
+            <table class="table table-minimal">
+                <thead>
+                    <tr>
+                        <th style="width: 35%">Sede</th>
+                        <th style="width: 30%">Administrador (Usuario)</th>
+                        <th style="width: 25%">Nombre Real</th>
+                        <th style="width: 10%" class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sede in sedes %}
+                    <tr>
+                        <td>
+                            <div class="d-flex flex-column">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="sede-tag {% if 'Centro' in sede.nombre %}sede-tag-centro{% elif 'Ricaute' in sede.nombre %}sede-tag-ricaute{% endif %}">
+                                        {{ sede.nombre }}
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center text-muted" style="font-size: 1rem;">
+                                    <span>{{ sede.direccion }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if sede.administrador %}
+                                <span class="fw-bold text-dark">{{ sede.administrador.username }}</span>
+                            {% else %}
+                                <span class="admin-tag-none">Sin asignar</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ sede.administrador.first_name|default:"---" }}
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex gap-1 justify-content-center">
+                                {% if sede.administrador %}
+                                    <button type="button" 
+                                            class="btn-icon btn-icon-danger" 
+                                            onclick="confirmarQuitarAdmin('{{ sede.id }}', '{{ sede.administrador.username }}', '{{ sede.nombre }}')">
+                                        <span class="material-symbols-outlined">person_remove</span>
+                                    </button>
+                                    <button type="button" 
+                                            class="btn-icon btn-icon-danger" 
+                                            onclick="confirmarEliminarTotal('{{ sede.id }}', '{{ sede.administrador.username }}')">
+                                        <span class="material-symbols-outlined">delete</span>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            <span class="material-symbols-outlined fs-1 d-block mb-3">storefront</span>
+                            No hay sedes registradas.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{# Enlace al JS externo #}
+<script src="{% static 'gestion/js/admin_actions.js' %}"></script>
+{% endblock %}

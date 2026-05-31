@@ -1,0 +1,683 @@
+/* Variables de estilo */
+:root {
+    --sidebar-bg: #121212;      /* Negro profundo */
+    --main-bg: #f4f7f6;         /* Gris muy claro para el fondo */
+    --gold: #c5a059;            /* Dorado para iconos y detalles */
+    --text-light: #ffffff;
+    --text-dark: #333333;
+    --accent: #6366f1;          /* Morado suave para botones */
+    --hover-bg: #1e1e1e;        /* Fondo al pasar el mouse por el menú */
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    height: 100%;
+}
+
+.dashboard-container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden; /* Evita scrolls raros del navegador principal */
+}
+
+/* Contenedor estándar responsivo */
+.container {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    padding-right: 15px;
+    padding-left: 15px;
+    box-sizing: border-box;
+}
+
+/* Contenedor de tablas responsivas */
+.table-responsive {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* --- Estilos del Sidebar --- */
+.sidebar {
+    width: 260px;
+    background-color: var(--sidebar-bg);
+    color: var(--text-light);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s;
+}
+
+.sidebar-header {
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #222;
+}
+
+.sidebar-header h2 {
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+}
+
+.gold-icon {
+    color: var(--gold);
+}
+
+.sidebar-nav {
+    padding-top: 1rem;
+    flex-grow: 1;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 2rem;
+    color: #a0a0a0;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.nav-item:hover {
+    background-color: var(--hover-bg);
+    color: var(--gold);
+}
+
+.nav-item span {
+    font-size: 20px;
+}
+
+/* --- Contenido Principal --- */
+.main-wrapper {
+    flex-grow: 1;
+    background-color: var(--main-bg);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.topbar {
+    height: 70px;          /* Forzamos la altura a 70px */
+    width: 100%;
+    background-color: #ffffff;
+    display: flex;         /* Usamos flexbox para alinear el contenido */
+    align-items: center;   /* Centra verticalmente el nombre de usuario y el botón salir */
+    justify-content: space-between; /* Separa el usuario a la izquierda y el salir a la derecha */
+    padding: 0 30px;       /* Espaciado interno a los lados */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Sombra sutil para que resalte */
+    position: sticky;      /* Opcional: para que se quede arriba al bajar */
+    top: 0;
+    z-index: 100;
+    box-sizing: border-box; /* Crucial para evitar que el padding rompa el ancho */
+}
+
+/* Ajuste del nombre de usuario para que se vea centrado */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #dc2626; /* Rojo para salir */
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.content {
+    padding: 2rem;
+}
+/* --- Estilos para las Tarjetas de Resumen --- */
+.dashboard-header {
+    margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+    font-size: 24px;
+    margin: 0;
+    color: var(--text-dark);
+}
+
+.dashboard-header p {
+    color: var(--text-secondary);
+    margin: 5px 0 0 0;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+}
+
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    border: 1px solid #edf2f7;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.stat-icon span {
+    font-size: 28px;
+}
+
+/* Colores de los iconos */
+.circle-blue { background: #e0e7ff; color: #4338ca; }
+.circle-gold { background: #fef3c7; color: #b45309; }
+.circle-green { background: #dcfce7; color: #15803d; }
+
+.stat-info h3 {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-number {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 5px 0 0 0;
+    color: var(--text-dark);
+}
+
+/* --- Contenedor de la Cuadrícula --- */
+.barberos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+/* --- Estilo de la Tarjeta --- */
+.barbero-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+}
+
+.barbero-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* --- Imagen y Badge --- */
+/* --- Imagen con tamaño predeterminado --- */
+.card-image {
+    position: relative;
+    width: 100%;
+    height: 200px; /* Altura fija para todas las fotos */
+    overflow: hidden;
+    background-color: #f0f0f0; /* Fondo por si la imagen falla */
+}
+
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Recorta la imagen para llenar el espacio sin deformarse */
+    display: block;
+}
+
+/* --- Ajuste del Badge para que sea visible --- */
+.badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10; /* Asegura que esté por encima de la imagen */
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Colores de estado (Asegúrate de tener estos) */
+.badge.activo { background-color: #2ecc71; color: white; }
+.badge.en-vacaciones { background-color: #f39c12; color: white; }
+.badge.inactivo { background-color: #e74c3c; color: white; }
+
+
+/* --- Cuerpo de la Tarjeta --- */
+.card-body {
+    padding: 20px;
+    flex-grow: 1;
+}
+
+.card-body h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--text-dark);
+}
+
+.specialty {
+    color: var(--gold);
+    font-weight: 500;
+    margin: 5px 0 15px 0;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* --- Footer con Acciones --- */
+.card-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* Elimina todo el estilo por defecto de <button> */
+    background: transparent !important; /* Forzamos transparente */
+    border: none !important;           /* Forzamos sin borde */
+    outline: none !important;          /* Sin el recuadro de foco azul */
+    
+    /* Mismo tamaño para todos */
+    width: 24px;   /* Tamaño del icono, ajústalo si lo prefieres mayor */
+    height: 24px;
+    
+    /* Espaciado para que sean interactuables */
+    padding: 0 !important; /* Sin relleno interno del botón */
+    margin: 0 !important;  /* Sin márgenes por defecto */
+    
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    /* Alineación vertical */
+    vertical-align: middle;
+}
+/* Forzamos que el icono dentro ocupe el espacio */
+.btn-icon .material-symbols-outlined {
+    font-size: 20px !important; /* Tamaño del icono visual */
+    line-height: 1;
+    display: block; /* Asegura que el check no se alinee raro */
+}
+
+.btn-icon.edit { color: #2c3e50; }
+.btn-icon.edit:hover { color: #34495e; transform: scale(1.1); }
+
+/* Azul para Vacaciones */
+.btn-icon.vacation { color: #3498db; }
+.btn-icon.vacation:hover { color: #2980b9; transform: scale(1.1); }
+
+/* Verde para Activar */
+.btn-icon.activate { color: #2ecc71; }
+.btn-icon.activate:hover { color: #27ae60; transform: scale(1.1); }
+
+/* Rojo para Inhabilitar */
+.btn-icon.delete-real { color: #e74c3c; }
+.btn-icon.delete-real:hover { color: #c0392b; transform: scale(1.1); }
+
+
+.btn-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #1a1a1a; /* Negro elegante como el sidebar */
+    color: #ffffff !important; /* Texto blanco */
+    padding: 12px 24px;
+    border-radius: 12px;      /* Bordes redondeados modernos */
+    text-decoration: none;    /* Quita el subrayado */
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease; /* Animación suave */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    border: none;
+    cursor: pointer;
+}
+
+/* Efecto cuando pasas el ratón por encima */
+.btn-add:hover {
+    background-color: #333333; /* Un gris oscuro al hacer hover */
+    transform: translateY(-2px); /* Pequeño salto hacia arriba */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* La sombra crece */
+}
+
+/* Efecto cuando haces clic */
+.btn-add:active {
+    transform: translateY(0);
+}
+
+/* Ajuste específico para el icono dentro del botón */
+.btn-add .material-symbols-outlined {
+    font-size: 20px;
+    vertical-align: middle;
+}
+
+
+
+/* Fondo oscurecido */
+.modal-overlay {
+    display: none; /* Se cambia a flex con JS */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Fondo oscuro */
+    z-index: 9999; /* Para que esté por encima de la barra lateral y superior */
+    justify-content: center;
+    align-items: center;
+}
+
+/* Caja del mensaje */
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    animation: modalIn 0.3s ease-out;
+}
+
+@keyframes modalIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-icon {
+    color: #f39c12;
+    margin-bottom: 15px;
+}
+
+.modal-icon span { font-size: 50px; }
+
+.modal-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+    justify-content: center;
+}
+
+/* Botones del modal */
+.btn-secondary {
+    background: #edf2f7;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* Color para el icono del modal (un azul suave) */
+.vacation-icon {
+    color: #3498db; 
+    margin-bottom: 15px;
+}
+
+.vacation-icon span { font-size: 50px; }
+
+/* Nuevo estilo para el botón de confirmación del modal */
+.btn-vacation {
+    background: #3498db; /* Azul */
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+.btn-vacation:hover {
+    background: #2980b9; /* Azul más oscuro al hover */
+}
+
+/* Opcional: Si quieres cambiar el color del icono en la tarjeta al hacer hover */
+.btn-icon.delete:hover {
+    background-color: #e3f2fd; /* Fondo azul muy claro */
+    color: #3498db;           /* Icono azul */
+}
+
+.btn-icon.delete-real:hover {
+    background-color: #fdeaea;
+    color: #e74c3c;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.btn-icon.activate {
+    color: #2ecc71; /* Verde esmeralda */
+}
+
+.btn-icon.activate:hover {
+    background-color: #eafaf1;
+    transform: scale(1.1);
+}
+
+/* RESETEO Y UNIFICACIÓN TOTAL PARA LOS 4 ICONOS */
+.card-footer .btn-icon {
+    /* 1. Resetear el tipo de elemento */
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    vertical-align: middle !important;
+    
+    /* 2. Resetear estilos de botón de navegador (Crítico) */
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    text-decoration: none !important; /* Para el enlace <a> */
+    
+    /* 3. Definir un tamaño de contenedor idéntico (Caja de interacción) */
+    /* Hacemos la caja un poco más grande (36px) para que sea FACIL de clickear */
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 8px; /* Bordes suaves para el hover */
+    
+    /* 4. Comportamiento */
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Forzar tamaño idéntico para el icono visual dentro de los 4 contenedores */
+.card-footer .btn-icon .material-symbols-outlined {
+    font-size: 20px !important; /* Tamaño visual del icono */
+    line-height: 1 !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* COLORES Y EFECTOS INDIVIDUALES (Sin recuadros, solo hover suave) */
+
+/* 1. Editar (Lápiz) - Azul oscuro */
+.card-footer .btn-icon.edit { color: #2c3e50; }
+.card-footer .btn-icon.edit:hover { background-color: #f4f6f7 !important; color: #34495e; }
+
+/* 2. Vacaciones (Avión) - Azul */
+.card-footer .btn-icon.vacation { color: #3498db; }
+.card-footer .btn-icon.vacation:hover { background-color: #eaf2f8 !important; color: #2980b9; }
+
+/* 3. Inhabilitar (Persona X) - Rojo */
+.card-footer .btn-icon.delete-real { color: #e74c3c; }
+.card-footer .btn-icon.delete-real:hover { background-color: #fdedec !important; color: #c0392b; }
+
+/* 4. Activar (Check) - Verde */
+.card-footer .btn-icon.activate { color: #2ecc71; }
+.card-footer .btn-icon.activate:hover { background-color: #eafaf1 !important; color: #27ae60; }
+
+/* ==========================================================================
+   DISEÑO RESPONSIVO Y SOPORTE DE SIDEBAR MOVIL
+   ========================================================================== */
+
+/* Overlay de la barra lateral */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Botón de Hamburguesa */
+.sidebar-toggle-btn {
+    display: none;
+    background: transparent;
+    border: none;
+    color: #1a1a1a;
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 15px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+.sidebar-toggle-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+.sidebar-toggle-btn span {
+    font-size: 28px;
+}
+
+/* Media Query para Tabletas y Móviles */
+@media (max-width: 768px) {
+    /* Mostrar botón toggle */
+    .sidebar-toggle-btn {
+        display: flex;
+    }
+
+    /* Modificar comportamiento de sidebar para hacerlo deslizable */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -260px;
+        width: 260px;
+        height: 100vh;
+        z-index: 10005;
+        box-shadow: 5px 0 25px rgba(0, 0, 0, 0.3);
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .sidebar.active {
+        left: 0;
+    }
+
+    /* Forzar que el wrapper principal use todo el ancho */
+    .main-wrapper {
+        margin-left: 0 !important;
+        width: 100%;
+    }
+    
+    .topbar {
+        padding: 0 20px;
+    }
+
+    /* Reducir padding de la sección de contenido para móviles */
+    .content {
+        padding: 1.5rem 1rem;
+    }
+}
+
+/* Ajustes finos para teléfonos móviles */
+@media (max-width: 576px) {
+    /* Apilar filas de formulario (doble columna a una columna) */
+    .form-row {
+        grid-template-columns: 1fr !important;
+        gap: 12px;
+    }
+    
+    /* Reducir padding excesivo de cajas de formulario */
+    .form-container {
+        padding: 20px 15px !important;
+    }
+
+    /* Apilar títulos y botones de cabecera que usen d-flex */
+    .border-bottom-minimal.d-flex {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 15px;
+    }
+    .border-bottom-minimal.d-flex > div:last-child {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    /* Asegurar que las pestañas de horarios no desborden */
+    .tabs-header {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    .tab-link {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .topbar {
+        padding: 0 15px !important;
+    }
+    .user-info span:not(.material-symbols-outlined) {
+        font-size: 0.85rem;
+    }
+    .logout-btn {
+        font-size: 0.8rem;
+    }
+}

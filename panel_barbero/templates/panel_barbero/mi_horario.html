@@ -1,0 +1,118 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Mi Horario | BarberApp{% endblock %}
+
+{% block extra_css %}
+<style>
+    .schedule-card {
+        border-left: 4px solid #1a1c1e;
+        transition: all 0.2s ease;
+    }
+    .schedule-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+    }
+    .schedule-card.descanso {
+        border-left-color: #cbd5e1;
+        background-color: #f8fafc;
+        opacity: 0.8;
+    }
+    .d-flex {
+        display: flex !important;
+    }
+    .justify-content-between {
+        justify-content: space-between !important;
+    }
+    .align-items-center {
+        align-items: center !important;
+    }
+    .mt-5 {
+        margin-top: 3rem !important;
+    }
+    .mb-4 {
+        margin-bottom: 1.5rem !important;
+    }
+    .p-4 {
+        padding: 1.5rem !important;
+    }
+    .w-100 {
+        width: 100% !important;
+    }
+    .gap-3 {
+        gap: 1rem;
+    }
+    .grid-schedule {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    .time-slot {
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom-minimal">
+        <div>
+            <h2>Mi Horario Semanal</h2>
+            <p class="text-muted small">Tu jornada laboral y descansos asignados por la administración</p>
+        </div>
+    </div>
+
+    <div class="grid-schedule">
+        {% for h in horarios %}
+        <div class="card card-minimal schedule-card p-4 {% if h.dia_descanso %}descanso{% endif %}">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="m-0" style="font-size: 1.2rem;">{{ h.get_dia_semana_display }}</h3>
+                {% if h.dia_descanso %}
+                <span style="color: #64748b; background: #e2e8f0; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">DESCANSO</span>
+                {% else %}
+                <span style="color: #1565c0; background: #e3f2fd; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">LABORAL</span>
+                {% endif %}
+            </div>
+
+            {% if h.dia_descanso %}
+            <div class="text-center py-3 text-muted">
+                <span class="material-symbols-outlined" style="font-size: 2.5rem; display: block; margin-bottom: 5px;">hotel</span>
+                Día libre asignado
+            </div>
+            {% else %}
+            <div class="d-flex flex-column gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="material-symbols-outlined text-muted" style="font-size: 1.5rem;">schedule</span>
+                    <div>
+                        <div class="text-muted small" style="font-size: 0.75rem;">Jornada de Trabajo</div>
+                        <div class="fw-bold" style="font-size: 1rem;">
+                            {{ h.hora_entrada|time:"g:i A" }} - {{ h.hora_salida|time:"g:i A" }}
+                        </div>
+                    </div>
+                </div>
+
+                {% if h.inicio_almuerzo and h.fin_almuerzo %}
+                <div class="d-flex align-items-center gap-3 border-top pt-3" style="border-top: 1px solid var(--border-color) !important;">
+                    <span class="material-symbols-outlined text-muted" style="font-size: 1.5rem;">restaurant</span>
+                    <div>
+                        <div class="text-muted small" style="font-size: 0.75rem;">Hora de Almuerzo</div>
+                        <div class="fw-bold" style="font-size: 1rem; color: #d97706;">
+                            {{ h.inicio_almuerzo|time:"g:i A" }} - {{ h.fin_almuerzo|time:"g:i A" }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,219 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    /* --- Variables de Estilo BarberApp --- */
+    :root {
+        --primary-dark: #1a202c;
+        --text-muted: #64748b;
+        --bg-body: #f1f5f9;
+        --border-color: #e2e8f0;
+        --white: #ffffff;
+    }
+
+    /* --- Contenedor de Centrado --- */
+    .wrapper-minimal {
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    /* --- Tarjeta Compacta --- */
+    .card-minimal {
+        background: var(--white);
+        border-radius: 24px !important;
+        border: none !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06) !important;
+        width: 100%;
+        max-width: 480px; /* Tamaño ideal para asignaciones */
+        overflow: hidden;
+    }
+
+    /* --- Cabecera de Tarjeta --- */
+    .header-minimal {
+        padding: 25px;
+        border-bottom: 1px solid var(--border-color);
+        text-align: center;
+        position: relative;
+    }
+
+    .btn-back-minimal {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #f8fafc;
+        color: var(--text-muted);
+        text-decoration: none;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s;
+    }
+
+    .btn-back-minimal:hover {
+        background: var(--primary-dark);
+        color: var(--white);
+        transform: scale(1.05);
+    }
+
+    /* --- Estilo de Formulario --- */
+    .form-body-minimal { padding: 35px; }
+
+    .form-label-custom {
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: #94a3b8;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .input-group-minimal {
+        position: relative;
+        margin-bottom: 25px;
+    }
+
+    .icon-input {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #cbd5e1;
+        font-size: 20px;
+        z-index: 5;
+    }
+
+    .form-select-minimal {
+        width: 100%;
+        padding: 14px 16px 14px 45px;
+        border-radius: 14px;
+        border: 1.5px solid var(--border-color);
+        background-color: #fcfcfd;
+        color: var(--primary-dark);
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 12px;
+    }
+
+    .form-select-minimal:focus {
+        outline: none;
+        border-color: var(--primary-dark);
+        box-shadow: 0 0 0 4px rgba(26, 32, 44, 0.05);
+        background-color: var(--white);
+    }
+
+    /* --- Botón de Acción --- */
+    .btn-barberapp {
+        background: var(--primary-dark);
+        color: var(--white);
+        border: none;
+        padding: 16px;
+        border-radius: 16px;
+        font-weight: 700;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .btn-barberapp:hover:not(:disabled) {
+        background: #000;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-barberapp:disabled {
+        background: #e2e8f0;
+        color: #94a3b8;
+        cursor: not-allowed;
+    }
+
+    .link-cancel {
+        display: block;
+        text-align: center;
+        margin-top: 15px;
+        color: #94a3b8;
+        font-size: 0.85rem;
+        text-decoration: none;
+        transition: color 0.2s;
+        font-weight: 500;
+    }
+
+    .link-cancel:hover { color: #ef4444; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrapper-minimal">
+    <div class="card card-minimal">
+        <div class="header-minimal">
+            <h4 class="fw-bold mb-0" style="letter-spacing: -0.5px; color: var(--primary-dark);">Vincular Admin</h4>
+        </div>
+
+        <div class="form-body-minimal">
+            <p class="text-muted text-center small mb-4 px-2">
+                Selecciona una sede disponible de <b>Ibagué</b> para asignarle un administrador.
+            </p>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="mb-1">
+                    <label class="form-label-custom">Sede de Trabajo</label>
+                    <div class="input-group-minimal">
+                        <span class="material-symbols-outlined icon-input">storefront</span>
+                        <select name="sede_id" class="form-select-minimal" required>
+                            <option value="" disabled selected>Elegir sede...</option>
+                            {% for sede in sedes_libres %}
+                                <option value="{{ sede.id }}">{{ sede.nombre }} - {{ sede.direccion }}</option>
+                            {% empty %}
+                                <option value="" disabled>No hay sedes disponibles</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label-custom">Administrador</label>
+                    <div class="input-group-minimal">
+                        <span class="material-symbols-outlined icon-input">person_search</span>
+                        <select name="admin_id" class="form-select-minimal" required>
+                            <option value="" disabled selected>Buscar usuario...</option>
+                            {% for admin in admins_disponibles %}
+                                <option value="{{ admin.id }}">
+                                    {{ admin.username }} {% if admin.first_name %}({{ admin.first_name }}){% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-5">
+                    <button type="submit" class="btn-barberapp" 
+                            {% if not sedes_libres or not admins_disponibles %}disabled{% endif %}>
+                        <span class="material-symbols-outlined">link</span>
+                        Confirmar Asignación
+                    </button>
+                    <a href="{% url 'lista_administradores' %}" class="link-cancel">Cancelar operación</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

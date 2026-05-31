@@ -1,0 +1,56 @@
+{% extends 'gestion/base.html' %}
+
+{% block content %}
+<div class="form-wrapper">
+    <div class="form-container">
+        <h2>Registrar Nuevo Administrador</h2>
+        
+        <form method="POST" id="adminForm">
+            {% csrf_token %}
+            
+            <div class="form-body">
+                {# Campo: Usuario #}
+                <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}">Usuario para el Admin</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div class="text-danger x-small mt-1">{{ form.username.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+
+                {# Campo: Contraseña #}
+                <div class="form-group">
+                    <label for="{{ form.password.id_for_label }}">Contraseña</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                        <div class="text-danger x-small mt-1">{{ form.password.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+
+                {# Campo: Nombre del Encargado #}
+                <div class="form-group">
+                    <label for="{{ form.first_name.id_for_label }}">Nombre del Encargado</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                        <div class="text-danger x-small mt-1">{{ form.first_name.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+
+                {# Campo: Selección de Sede #}
+                <div class="form-group">
+                    <label for="{{ form.sede.id_for_label }}">Seleccionar Sede para asignar</label>
+                    {{ form.sede }}
+                    {% if form.sede.errors %}
+                        <div class="text-danger x-small mt-1">{{ form.sede.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-save">Guardar Administrador</button>
+                <a href="{% url 'lista_administradores' %}" class="btn-cancel">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

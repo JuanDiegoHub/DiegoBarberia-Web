@@ -1,0 +1,444 @@
+/* Estilos Minimalistas para Panel de Administración */
+:root {
+    --bg-main: #fcfcfc; /* Fondo casi blanco, muy limpio */
+    --text-dark: #2c3e50; /* Texto oscuro, no negro puro */
+    --text-muted: #7f8c8d; /* Texto secundario gris claro */
+    --border-color: #e6e9ed; /* Bordes muy sutiles */
+    
+    /* Colores Planos para Sedes (Minimalistas) */
+    --color-centro: #e0f2f1; /* Verde menta muy pálido */
+    --text-centro: #00695c; /* Verde oscuro para texto */
+    
+    --color-ricaute: #fff3e0; /* Naranja muy pálido */
+    --text-ricaute: #e65100; /* Naranja oscuro para texto */
+    
+    --color-sin-asignar: #f4f6f7; /* Gris muy pálido */
+    --text-sin-asignar: #566573; /* Gris oscuro para texto */
+}
+
+body {
+    background-color: var(--bg-main) !important;
+    color: var(--text-dark);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; /* Tipografía limpia */
+}
+
+/* Títulos limpios */
+h2, h3 {
+    font-weight: 700;
+    color: var(--text-dark);
+    letter-spacing: -0.5px;
+}
+
+/* Tarjeta Minimalista (Card) */
+.card-minimal {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02); /* Sombra casi invisible */
+}
+
+.card-header-minimal {
+    background: transparent;
+    border-bottom: 1px solid var(--border-color);
+    padding: 20px;
+}
+
+/* Tabla Minimalista y Fácil de Leer */
+.table-minimal {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.table-minimal thead th {
+    background-color: transparent;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 15px 20px;
+}
+
+.table-minimal tbody td {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.table-minimal tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table-minimal tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.01); /* Efecto hover muy sutil */
+}
+
+/* Etiquetas (Badges) Minimalistas */
+.sede-tag {
+    font-size: 1rem;
+    font-weight: 800;
+    padding: 4px 10px; /* Un poco más de aire interno */
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    display: inline-block;
+}
+
+.sede-tag-centro {
+    background-color: var(--color-centro);
+    color: var(--text-centro);
+}
+
+.sede-tag-ricaute {
+    background-color: var(--color-ricaute);
+    color: var(--text-ricaute);
+}
+
+.admin-tag-none {
+    background-color: var(--color-sin-asignar);
+    color: var(--text-sin-asignar);
+    border-radius: 4px;
+    font-size: 0.8rem;
+    padding: 4px 10px;
+}
+
+/* Botones con Estilo BarberApp (Minimalistas) */
+.btn-barberapp {
+    background-color: #1a1c1e; /* Color exacto de tu sidebar */
+    color: #ffffff;
+    border: none;
+    font-weight: 500;
+    font-size: 0.8rem;
+    padding: 8px 16px;
+    border-radius: 4px; /* Un poco más cuadrado para seguir tu estilo */
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-barberapp:hover {
+    background-color: #000000;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+
+.btn-icon {
+    color: var(--text-muted);
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+.btn-icon:hover {
+    color: var(--text-dark);
+    background-color: rgba(0,0,0,0.03);
+}
+
+.btn-icon-danger:hover {
+    color: #e74c3c;
+    background-color: #fadbd8;
+}
+
+/* Inputs Minimalistas */
+.form-control-minimal {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 12px 15px;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+}
+
+.form-control-minimal:focus {
+    border-color: #aeb6bf;
+    box-shadow: none;
+}
+
+.material-symbols-outlined {
+    display: flex;
+    align-items: end;
+    justify-content: start;
+}
+
+/* Ajuste de la cabecera para que el botón no flote */
+.border-bottom-minimal {
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+}
+
+/* static/gestion/css/admin_style.css */
+
+:root {
+    --primary-dark: #1a1c1e; /* Gris oscuro sidebar */
+    --accent-blue: #0d6efd; /* Azul Bootstrap por defecto */
+    --bg-light: #f8f9fa; /* Fondo casi blanco */
+    --text-muted: #6c757d; /* Texto gris claro */
+    --border-color: #dee2e6; /* Bordes sutiles */
+}
+
+/* Campos de entrada (Inputs) Minimalistas */
+.form-control-minimal {
+    border: 1px solid var(--border-color);
+    border-radius: 0 6px 6px 0; /* Bordes redondeados solo a la derecha */
+    padding: 12px 15px;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    background-color: white;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control-minimal:focus {
+    border-color: #aeb6bf; /* Gris sutil al hacer foco */
+    box-shadow: none; /* Eliminamos el halo azul de Bootstrap */
+    background-color: white;
+}
+
+/* Iconos integrados en el Input Group */
+.input-group-text {
+    border: 1px solid var(--border-color);
+    border-right: none; /* Eliminamos el borde entre icono e input */
+    background-color: #f8f9fa !important;
+    padding-left: 15px;
+    padding-right: 5px;
+}
+
+/* Botones con estilo BarberApp (Negro del sidebar) */
+.btn-barberapp {
+    background-color: var(--primary-dark);
+    color: white;
+    border: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 12px 20px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-barberapp:hover {
+    background-color: #000000;
+    color: white;
+    transform: translateY(-1px); /* Pequeño salto al hacer hover */
+}
+
+/* Iconos de Google Material Symbols */
+.material-symbols-outlined {
+    vertical-align: middle;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Aplicamos exactamente el mismo CSS que usas en Barberos */
+    .form-wrapper, 
+    .form-container, 
+    .form-container *, 
+    .form-container *::before, 
+    .form-container *::after {
+        box-sizing: border-box;
+    }
+
+    .form-wrapper {
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .form-container {
+        background: #ffffff;
+        padding: 35px;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 550px; 
+        box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+        border: 1px solid #f0f0f0;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .form-container h2 {
+        color: #1a1a1a;
+        font-size: 1.6rem;
+        margin-top: 0;
+        margin-bottom: 25px;
+        text-align: center;
+        font-weight: 700;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+        width: 100%;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #444;
+        font-size: 0.9rem;
+    }
+
+    /* Inputs y Selects con el fondo f8fafc que usas en barberos */
+    input[type="text"], 
+    input[type="password"], 
+    select {
+        width: 100% !important;
+        padding: 12px 15px;
+        border: 2px solid #edf2f7;
+        border-radius: 10px;
+        background-color: #f8fafc;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        display: block;
+    }
+
+    input:focus, select:focus {
+        outline: none;
+        border-color: #1a1a1a;
+        background-color: #fff;
+        box-shadow: 0 0 0 4px rgba(26, 26, 26, 0.05);
+    }
+
+    .form-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 25px;
+    }
+
+    .btn-save {
+        background: #1a1a1a;
+        color: white;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-save:hover {
+        background: #000;
+        transform: translateY(-1px);
+    }
+
+    .btn-cancel {
+        text-align: center;
+        color: #718096;
+        text-decoration: none;
+        font-size: 0.9rem;
+        padding: 8px;
+    }
+
+    @media (min-width: 480px) {
+        .form-actions {
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+        }
+        .btn-save { width: 240px; }
+    }
+
+.swal-custom-radius {
+    border-radius: 20px !important;
+}
+.btn-confirm-swal {
+    padding: 10px 25px !important;
+    font-weight: bold !important;
+}
+.btn-cancel-swal {
+    padding: 10px 25px !important;
+    font-weight: bold !important;
+    color: #2f3640 !important;
+}
+.btn-barberapp-outline {
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #1a1a1a; /* Borde delgado y elegante */
+    padding: 10px 20px;
+    border-radius: 8px; /* Ajusta este radio según tus otros botones */
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 42px; /* Forzamos la misma altura que el botón negro */
+}
+
+.btn-barberapp-outline:hover {
+    background-color: #f8f9fa;
+    color: #000000;
+    border-color: #000000;
+    transform: translateY(-1px);
+}
+
+/* Asegúrate que el botón negro tenga la misma altura para que encajen */
+.btn-barberapp {
+    height: 42px; 
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* Contenedor del Input/Select con Icono */
+.input-group-minimal {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.icon-input {
+    position: absolute;
+    left: 15px;
+    color: #94a3b8;
+    z-index: 10;
+}
+
+.form-select-minimal {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background-color: #f8fafc;
+    color: #1e293b;
+    font-size: 0.95rem;
+    appearance: none; /* Quita la flecha por defecto en algunos navegadores */
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 16px 12px;
+    transition: all 0.2s;
+}
+
+.form-select-minimal:focus {
+    outline: none;
+    border-color: #1a1a1a;
+    background-color: #fff;
+    box-shadow: 0 0 0 4px rgba(26, 26, 26, 0.05);
+}
+
+.form-label {
+    font-size: 0.85rem;
+    color: #475569;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* Estado deshabilitado del botón */
+.btn-barberapp:disabled {
+    background-color: #cbd5e1;
+    border-color: #cbd5e1;
+    cursor: not-allowed;
+}
+

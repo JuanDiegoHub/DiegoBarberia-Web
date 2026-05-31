@@ -1,0 +1,80 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Mi Panel | {{ barbero.nombre }}{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'panel_barbero/css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-barbero">
+    <div class="welcome-section">
+        <div class="profile-brief">
+            {% if barbero.imagen %}
+                <img src="{{ barbero.imagen.url }}" alt="{{ barbero.nombre }}" class="avatar-sm">
+            {% else %}
+                <div class="avatar-sm" style="background:#eee; display:flex; align-items:center; justify-content:center;">👤</div>
+            {% endif %}
+            <div>
+                <h1>¡Hola, {{ barbero.nombre }}!</h1>
+                <p>Hoy es <strong>{% now "l, j \d\e F" %}</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="material-symbols-outlined icon-blue">history_edu</span>
+            <div class="stat-info">
+                <span class="stat-number">{{ total_hoy }}</span>
+                <span class="stat-label">Citas de hoy</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <span class="material-symbols-outlined icon-gold">content_cut</span>
+            <div class="stat-info">
+                <span class="stat-number" style="font-size: 1.1rem;">{{ barbero.especialidad }}</span>
+                <span class="stat-label">Tu Especialidad</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="agenda-section">
+        <h2>
+            <span class="material-symbols-outlined">event_note</span>
+            Tu Agenda del Día
+        </h2>
+        
+        <div class="agenda-container">
+            {% for cita in citas_hoy %}
+            <div class="agenda-item">
+                <div class="time-box">
+                    <span>{{ cita.hora|time:"H:i" }}</span>
+                </div>
+                
+                <div class="client-info">
+                    <h4>Cliente: {{ cita.telefono }}</h4>
+                </div>
+
+                <div class="status-badge {{ cita.estado|slugify }}">
+                    {{ cita.get_estado_display }}
+                </div>
+
+                <div class="actions">
+                    <a href="#" class="btn-check" title="Finalizar Servicio">
+                        <span class="material-symbols-outlined">check_circle</span>
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <span class="material-symbols-outlined" style="font-size: 4rem;">event_busy</span>
+                <h3>Día tranquilo</h3>
+                <p>No tienes citas registradas para hoy.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

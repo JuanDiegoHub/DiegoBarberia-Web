@@ -1,0 +1,107 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Barberos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Nuestros Barberos</h1>
+        <p>Administra el personal, sus sedes y disponibilidad.</p>
+    </div>
+    <a href="{% url 'crear_barbero' %}" class="btn-add">
+        <span class="material-symbols-outlined">person_add</span> Nuevo Barbero
+    </a>
+</div>
+
+<div class="barberos-grid">
+    {% for barbero in barberos %}
+    <div class="barbero-card">
+        <div class="card-image">
+            {% if barbero.imagen %}
+                <img src="{{ barbero.imagen.url }}" alt="{{ barbero.nombre }}">
+            {% else %}
+                <img src="{% static 'gestion/img/default-avatar.png' %}" alt="Sin foto">
+            {% endif %}
+            
+            <span class="badge {{ barbero.estado|slugify }}">
+                {{ barbero.get_estado_display }}
+            </span>
+        </div>
+        
+        <div class="card-body">
+            <h3>{{ barbero.nombre }} {{ barbero.apellido }}</h3>
+            
+            {# --- MOSTRAR EL USUARIO ASIGNADO --- #}
+            <p class="username-display" style="font-size: 0.85rem; color: #888; margin-bottom: 5px;">
+                <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">account_circle</span>
+                {% if barbero.user %}
+                    {{ barbero.user.username }}
+                {% else %}
+                    Sin usuario asignado
+                {% endif %}
+            </p>
+
+            <p class="specialty">{{ barbero.especialidad }}</p>
+            <div class="info-row">
+                <span class="material-symbols-outlined">location_on</span>
+                <span>{{ barbero.sede.nombre }}</span>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <a href="{% url 'editar_barbero' barbero.pk %}" class="btn-icon edit">
+                <span class="material-symbols-outlined">edit</span>
+            </a>
+
+            {% if barbero.estado == 'activo' %}
+            <button onclick="openVacationsModal('{% url 'vacaciones_barbero' barbero.pk %}')" class="btn-icon delete" title="Poner en Vacaciones">
+                <span class="material-symbols-outlined">flight_takeoff</span>
+            </button>
+            {% endif %}
+
+            <button onclick="openRealDeleteModal('{% url 'eliminar_barbero_definitivo' barbero.pk %}')" class="btn-icon delete-real" title="Inactivar Barbero">
+                <span class="material-symbols-outlined">person_remove</span>
+            </button>
+            {% if barbero.estado != 'activo' %}
+                <a href="{% url 'activar_barbero' barbero.pk %}" class="btn-icon activate" title="Poner Activo">
+                    <span class="material-symbols-outlined">check_circle</span>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <p>No hay barberos registrados aún.</p>
+    {% endfor %}
+</div>
+
+{# El modal debe estar dentro del block content #}
+<div id="vacationsModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-icon vacation-icon">
+            <span class="material-symbols-outlined">flight_takeoff</span>
+        </div>
+        <h2>¿Confirmar Vacaciones?</h2>
+        <p>Este barbero será <strong>inhabilitado temporalmente</strong>. No aparecerá en las listas de citas activas hasta que cambies su estado nuevamente.</p>
+        <div class="modal-actions">
+            <button onclick="closeModal('vacationsModal')" class="btn-secondary">Cancelar</button>
+            <a id="confirmVacationsBtn" href="#" class="btn-vacation">Sí, poner en vacaciones</a>
+        </div>
+    </div>
+</div>
+
+<div id="realDeleteModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-icon" style="color: #e74c3c;">
+            <span class="material-symbols-outlined">dangerous</span>
+        </div>
+        <h2>¿Eliminar Barbero?</h2>
+        <p>El barbero ya no aparecerá en el sistema, pero sus <strong>registros de citas pasadas</strong> se conservarán por seguridad.</p>
+        <div class="modal-actions">
+            <button onclick="closeModal('realDeleteModal')" class="btn-secondary">Cancelar</button>
+            <a id="confirmRealDeleteBtn" href="#" class="btn-danger">Confirmar Eliminación</a>
+        </div>
+    </div>
+</div>
+<script src="{% static 'gestion/js/barberos.js' %}"></script>
+{% endblock %}

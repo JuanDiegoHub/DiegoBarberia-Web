@@ -1,0 +1,398 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Horarios | BarberApp{% endblock %}
+
+{% block extra_css %}
+<style>
+    .schedule-grid {
+        display: flex;
+        gap: 2rem;
+        margin-top: 1.5rem;
+    }
+    .schedule-col-left {
+        flex: 2;
+    }
+    .schedule-col-right {
+        flex: 1;
+        min-width: 300px;
+    }
+    .barber-list-item {
+        display: flex;
+        align-items: center;
+        padding: 16px 20px;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        margin-bottom: 15px;
+        text-decoration: none;
+        color: var(--text-dark);
+        background-color: white;
+        transition: all 0.2s ease;
+    }
+    .barber-list-item:hover {
+        background-color: #f8fafc;
+        border-color: #cbd5e1;
+        transform: translateX(4px);
+    }
+    .barber-list-item.active {
+        background-color: #1a1c1e;
+        color: white;
+        border-color: #1a1c1e;
+    }
+    .barber-list-item .avatar-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: #cbd5e1;
+        margin-right: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #1e293b;
+        overflow: hidden;
+    }
+    .barber-list-item .avatar-circle img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .barber-list-item.active .avatar-circle {
+        background-color: var(--primary-gold, #c5a059);
+        color: black;
+    }
+    
+    .table-schedule input[type="time"] {
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-family: inherit;
+        background-color: #f8fafc;
+    }
+    .table-schedule input[type="time"]:focus {
+        border-color: #1a1c1e;
+        background-color: white;
+        outline: none;
+    }
+    .table-schedule input[type="time"]:disabled {
+        background-color: #e2e8f0;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    .form-check-input {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    .w-100 {
+        width: 100%;
+    }
+    .d-flex {
+        display: flex;
+    }
+    .gap-2 {
+        gap: 0.5rem;
+    }
+    .align-items-center {
+        align-items: center;
+    }
+    .justify-content-between {
+        justify-content: space-between;
+    }
+    .mt-4 {
+        margin-top: 1.5rem;
+    }
+    .mb-3 {
+        margin-bottom: 1rem;
+    }
+    
+    /* Tabs style */
+    .tabs-header {
+        display: flex;
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: 1.5rem;
+    }
+    .tab-link {
+        padding: 10px 20px;
+        text-decoration: none;
+        color: var(--text-muted);
+        font-weight: 600;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        transition: all 0.2s;
+    }
+    .tab-link:hover {
+        color: var(--text-dark);
+    }
+    .tab-link.active {
+        color: #1a1c1e;
+        border-bottom-color: #1a1c1e;
+    }
+    
+    @media (max-width: 1200px) {
+        .schedule-grid {
+            flex-direction: column;
+        }
+    }
+
+    .day-box {
+        padding: 6px 10px;
+        border-radius: 6px;
+        text-align: center;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-block;
+        min-width: 80px;
+        font-size: 0.9rem;
+    }
+    
+    .day-enabled {
+        background-color: #dcfce7;
+        border: 1px solid #15803d;
+        color: #15803d;
+    }
+    
+    .day-disabled {
+        background-color: #fee2e2;
+        border: 1px solid #b91c1c;
+        color: #b91c1c;
+        cursor: not-allowed;
+    }
+
+    .schedule-header-box {
+        margin-left: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom-minimal">
+        <div>
+            <h2>Configuración de Horarios</h2>
+            <p class="text-muted small">Gestiona los horarios semanales de apertura y el personal de la sede</p>
+        </div>
+        
+        {% if sedes.count > 1 %}
+        <div style="min-width: 200px;">
+            <form method="GET" action="" id="sede-selector-form">
+                <select name="sede_id" class="form-select-minimal" onchange="document.getElementById('sede-selector-form').submit()">
+                    {% for s in sedes %}
+                        <option value="{{ s.id }}" {% if s.id == sede_actual.id %}selected{% endif %}>{{ s.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Pestañas de Navegación del Horario -->
+    <div class="tabs-header">
+        <a href="?sede_id={{ sede_actual.id }}" class="tab-link {% if not barbero_actual %}active{% endif %}">
+            Horario de la Sede ({{ sede_actual.nombre }})
+        </a>
+        {% if barbero_actual %}
+        <a href="#" class="tab-link active">
+            Horario: {{ barbero_actual.nombre }} {{ barbero_actual.apellido }}
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="schedule-grid">
+        <!-- Columna de Horarios (Izquierda) -->
+        <div class="schedule-col-left">
+            {% if not barbero_actual %}
+            <!-- HORARIO SEDE -->
+            <div class="card card-minimal p-4">
+                <div class="schedule-header-box">
+                    <h3 class="mb-3">Horario de Apertura y Cierre</h3>
+                    <p class="text-muted small mb-4">Define las horas en las que la sede está abierta al público para agendar citas.</p>
+                </div>
+                
+                <form method="POST" action="">
+                    {% csrf_token %}
+                    <input type="hidden" name="guardar_sede" value="1">
+                    <input type="hidden" name="sede_id" value="{{ sede_actual.id }}">
+                    
+                    <div class="table-responsive">
+                        <table class="table table-minimal table-schedule">
+                            <thead>
+                                <tr>
+                                    <th style="width: 25%">Día</th>
+                                    <th style="width: 30%">Hora Apertura</th>
+                                    <th style="width: 30%">Hora Cierre</th>
+                                    <th style="width: 15%" class="text-center">Cerrado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for h in horarios_sede %}
+                                <tr>
+                                    <td>
+                                        <label for="cerrado_{{ h.dia_semana }}" style="cursor: pointer; display: block;">
+                                            <div class="day-box {% if h.cerrado %}day-disabled{% else %}day-enabled{% endif %}" id="day_box_sede_{{ h.dia_semana }}" {% if h.cerrado %}title="Este día está inhabilitado"{% endif %}>
+                                                {{ h.get_dia_semana_display }}
+                                            </div>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <input type="time" name="apertura_{{ h.dia_semana }}" value="{{ h.hora_apertura|time:'H:i' }}" id="apertura_{{ h.dia_semana }}" class="w-100" {% if h.cerrado %}disabled{% endif %}>
+                                    </td>
+                                    <td>
+                                        <input type="time" name="cierre_{{ h.dia_semana }}" value="{{ h.hora_cierre|time:'H:i' }}" id="cierre_{{ h.dia_semana }}" class="w-100" {% if h.cerrado %}disabled{% endif %}>
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="checkbox" name="cerrado_{{ h.dia_semana }}" id="cerrado_{{ h.dia_semana }}" class="form-check-input" {% if h.cerrado %}checked{% endif %} onchange="toggleSedeRow({{ h.dia_semana }})">
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-4 text-center">
+                        <button type="submit" class="btn-barberapp" style="width: 200px;">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+            {% else %}
+            <!-- HORARIO BARBERO -->
+            <div class="card card-minimal p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3>Horario de Trabajo de {{ barbero_actual.nombre }}</h3>
+                    <a href="?sede_id={{ sede_actual.id }}" class="btn-barberapp-outline" style="height: 34px; padding: 0 12px; font-size: 0.8rem;">Volver a Sede</a>
+                </div>
+                <p class="text-muted small mb-4">Define la jornada de trabajo del barbero, incluyendo su hora de almuerzo y días libres.</p>
+                
+                <form method="POST" action="">
+                    {% csrf_token %}
+                    <input type="hidden" name="guardar_barbero" value="1">
+                    <input type="hidden" name="sede_id" value="{{ sede_actual.id }}">
+                    <input type="hidden" name="barbero_id" value="{{ barbero_actual.id }}">
+                    
+                    <div class="table-responsive">
+                        <table class="table table-minimal table-schedule">
+                            <thead>
+                                <tr>
+                                    <th style="width: 15%">Día</th>
+                                    <th style="width: 20%">Entrada</th>
+                                    <th style="width: 20%">Salida</th>
+                                    <th style="width: 18%">Almuerzo Inicio</th>
+                                    <th style="width: 18%">Almuerzo Fin</th>
+                                    <th style="width: 9%" class="text-center">Descanso</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for h in horarios_barbero %}
+                                <tr>
+                                    <td>
+                                        <label for="descanso_{{ h.dia_semana }}" style="cursor: pointer; display: block;">
+                                            <div class="day-box {% if h.dia_descanso %}day-disabled{% else %}day-enabled{% endif %}" id="day_box_barbero_{{ h.dia_semana }}" {% if h.dia_descanso %}title="Este día está inhabilitado"{% endif %}>
+                                                {{ h.get_dia_semana_display }}
+                                            </div>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <input type="time" name="entrada_{{ h.dia_semana }}" value="{{ h.hora_entrada|time:'H:i' }}" id="entrada_{{ h.dia_semana }}" class="w-100" {% if h.dia_descanso %}disabled{% endif %}>
+                                    </td>
+                                    <td>
+                                        <input type="time" name="salida_{{ h.dia_semana }}" value="{{ h.hora_salida|time:'H:i' }}" id="salida_{{ h.dia_semana }}" class="w-100" {% if h.dia_descanso %}disabled{% endif %}>
+                                    </td>
+                                    <td>
+                                        <input type="time" name="almuerzo_inicio_{{ h.dia_semana }}" value="{{ h.inicio_almuerzo|time:'H:i' }}" id="almuerzo_inicio_{{ h.dia_semana }}" class="w-100" {% if h.dia_descanso %}disabled{% endif %}>
+                                    </td>
+                                    <td>
+                                        <input type="time" name="almuerzo_fin_{{ h.dia_semana }}" value="{{ h.fin_almuerzo|time:'H:i' }}" id="almuerzo_fin_{{ h.dia_semana }}" class="w-100" {% if h.dia_descanso %}disabled{% endif %}>
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="checkbox" name="descanso_{{ h.dia_semana }}" id="descanso_{{ h.dia_semana }}" class="form-check-input" {% if h.dia_descanso %}checked{% endif %} onchange="toggleBarberoRow({{ h.dia_semana }})">
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-4 text-center">
+                        <button type="submit" class="btn-barberapp" style="width: 200px;">Guardar Jornada</button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Columna de Personal (Derecha) -->
+        <div class="schedule-col-right">
+            <div class="card card-minimal p-4" style="padding: 2rem !important;">
+                <h3 class="mb-3">Horario del Personal</h3>
+                <p class="text-muted small mb-4">Selecciona un barbero para configurar su jornada laboral individual.</p>
+                
+                <div class="barbers-list" style="margin-top: 1.5rem;">
+                    {% for b in barberos %}
+                    <a href="?sede_id={{ sede_actual.id }}&barbero_id={{ b.id }}" class="barber-list-item {% if barbero_actual.id == b.id %}active{% endif %}">
+                        <div class="avatar-circle">
+                            {% if b.imagen %}
+                                <img src="{{ b.imagen.url }}" alt="{{ b.nombre }}">
+                            {% else %}
+                                {{ b.nombre|slice:":1" }}
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="fw-bold">{{ b.nombre }} {{ b.apellido }}</div>
+                            <span class="text-muted small" style="font-size: 0.75rem;">
+                                {% if barbero_actual.id == b.id %}Configurando...{% else %}Ver horario{% endif %}
+                            </span>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <p class="text-muted small text-center py-4">No hay barberos registrados en esta sede.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleSedeRow(dayNum) {
+        const checkbox = document.getElementById('cerrado_' + dayNum);
+        const apertura = document.getElementById('apertura_' + dayNum);
+        const cierre = document.getElementById('cierre_' + dayNum);
+        const dayBox = document.getElementById('day_box_sede_' + dayNum);
+        
+        if (checkbox.checked) {
+            apertura.disabled = true;
+            cierre.disabled = true;
+            dayBox.className = 'day-box day-disabled';
+            dayBox.title = 'Este día está inhabilitado';
+        } else {
+            apertura.disabled = false;
+            cierre.disabled = false;
+            dayBox.className = 'day-box day-enabled';
+            dayBox.title = '';
+        }
+    }
+
+    function toggleBarberoRow(dayNum) {
+        const checkbox = document.getElementById('descanso_' + dayNum);
+        const entrada = document.getElementById('entrada_' + dayNum);
+        const salida = document.getElementById('salida_' + dayNum);
+        const almuerzo_inicio = document.getElementById('almuerzo_inicio_' + dayNum);
+        const almuerzo_fin = document.getElementById('almuerzo_fin_' + dayNum);
+        const dayBox = document.getElementById('day_box_barbero_' + dayNum);
+        
+        const disabledState = checkbox.checked;
+        entrada.disabled = disabledState;
+        salida.disabled = disabledState;
+        almuerzo_inicio.disabled = disabledState;
+        almuerzo_fin.disabled = disabledState;
+        
+        if (disabledState) {
+            dayBox.className = 'day-box day-disabled';
+            dayBox.title = 'Este día está inhabilitado';
+        } else {
+            dayBox.className = 'day-box day-enabled';
+            dayBox.title = '';
+        }
+    }
+</script>
+{% endblock %}

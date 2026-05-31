@@ -1,0 +1,70 @@
+{% extends 'gestion/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{% url 'lista_administradores' %}" class="btn-icon me-3">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <div>
+            <h2 class="mb-1">Crear Nueva Sede</h2>
+            <p class="text-muted mb-0 small">Registra una nueva sede y asígnale su administrador en un solo paso.</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card card-minimal">
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <h4 class="mb-4 pb-2 border-bottom" style="color: var(--primary-color);">Datos de la Sede</h4>
+                        <div class="row mb-4">
+                            <div class="col-12 mb-3">
+                                <label for="id_sede_nombre" class="form-label text-muted fw-bold">Nombre de la Sede</label>
+                                {{ form.sede_nombre }}
+                                {% if form.sede_nombre.errors %}
+                                <div class="text-danger small mt-1">{{ form.sede_nombre.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="id_sede_direccion" class="form-label text-muted fw-bold">Dirección Física</label>
+                                {{ form.sede_direccion }}
+                                {% if form.sede_direccion.errors %}
+                                <div class="text-danger small mt-1">{{ form.sede_direccion.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <h4 class="mb-4 pb-2 border-bottom" style="color: var(--primary-color);">Asignar Administrador</h4>
+                        <div class="row mb-4">
+                            <div class="col-12 mb-3">
+                                <label for="id_administrador" class="form-label text-muted fw-bold">Seleccionar Administrador Disponible (Opcional)</label>
+                                {{ form.administrador }}
+                                {% if form.administrador.errors %}
+                                <div class="text-danger small mt-1">{{ form.administrador.errors }}</div>
+                                {% endif %}
+                                <div style="display: flex; align-items: center; gap: 6px; color: #6c757d; font-size: 0.875rem; margin-top: 8px;">
+                                    <span class="material-symbols-outlined" style="font-size: 20px; line-height: 1;">info</span> 
+                                    <span style="line-height: 1.2;">Solo aparecen los usuarios administradores que aún no tienen una sede asignada.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 15px; margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; flex-wrap: wrap;">
+                            <a href="{% url 'lista_administradores' %}" class="btn-barberapp-outline" style="height: 45px; min-width: 160px; display: flex; align-items: center; justify-content: center; margin: 0; padding: 0 20px; font-weight: 500;">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn-barberapp" style="height: 45px; min-width: 160px; display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0; padding: 0 20px; font-weight: 500; border: none;">
+                                <span class="material-symbols-outlined" style="font-size: 22px; line-height: 1;">save</span>
+                                Guardar Sede
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
