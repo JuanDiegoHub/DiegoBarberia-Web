@@ -108,6 +108,8 @@ body, html {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
     font-size: 14px;
     margin-bottom: 25px;
 }
