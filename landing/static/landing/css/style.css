@@ -254,8 +254,11 @@ p {
     }
 
     .glass-card {
-        padding: 0 !important; /* Evitar deformación de la imagen */
         border-radius: 20px;
+    }
+
+    #inicio .glass-card {
+        padding: 25px !important;
     }
 
     .card-text {
