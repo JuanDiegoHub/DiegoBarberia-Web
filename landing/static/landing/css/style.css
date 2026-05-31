@@ -203,6 +203,7 @@ p {
     .card-image { height: 300px; }
     h1 { font-size: 2.5rem; }
     .nav-links { display: none; } /* En móviles ocultamos el menú simple */
+    .card-text { padding: 40px 30px; }
 }
 /* --- Ajustes Responsive para la Agenda --- */
 
@@ -253,8 +254,24 @@ p {
     }
 
     .glass-card {
-        padding: 25px !important; /* Menos padding interno */
-        border-radius: 30px;
+        padding: 0 !important; /* Evitar deformación de la imagen */
+        border-radius: 20px;
+    }
+
+    .card-text {
+        padding: 30px 20px;
+    }
+
+    .card-actions {
+        flex-direction: column;
+        width: 100%;
+        gap: 12px;
+    }
+
+    .card-actions a {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
     }
 
     .subtitle {
@@ -266,6 +283,25 @@ p {
     .glass-input {
         font-size: 16px; /* Evita zoom automático en iOS */
         padding: 12px;
+    }
+
+    /* Navbar Ajustes */
+    .glass-nav {
+        padding: 10px 15px;
+        width: 95%;
+    }
+
+    .logo {
+        font-size: 1rem;
+    }
+
+    .logo .material-symbols-outlined {
+        font-size: 20px;
+    }
+
+    .btn-login {
+        padding: 8px 12px;
+        font-size: 0.75rem;
     }
 }
 
