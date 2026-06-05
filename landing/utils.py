@@ -8,11 +8,10 @@ def enviar_whatsapp_otp(telefono, codigo):
     
     url = f"https://api.ultramsg.com/{instance_id}/messages/chat"
     
-    # Aseguramos el formato para Colombia (+57)
-    # Si el usuario ya pone el 57, no lo duplicamos
     numero_limpio = ''.join(filter(str.isdigit, telefono))
     if not numero_limpio.startswith('57'):
         numero_limpio = f"57{numero_limpio}"
+
 
     cuerpo_mensaje = (
         "💈 *BARBERAPP IBAGUÉ* 💈\n\n"
@@ -38,5 +37,5 @@ def enviar_whatsapp_otp(telefono, codigo):
         return response.json()
     except Exception as e:
         print(f"--- ERROR DE CONEXIÓN ---")
-        print(f"Detalle: {e}")
-        return None
+        print(f"Detalle: {str(e)}")
+        return {'error': f'Excepción interna: {str(e)}'}

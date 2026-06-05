@@ -194,6 +194,12 @@
                 <button onclick="confirmarCitaFinal()" class="btn-confirm-reserva">Verificar y Agendar</button>
                 <button onclick="regresarPaso1()" class="btn-back-step">Cambiar número de teléfono</button>
             </div>
+
+            <div id="paso-limite-excedido" style="display: none; text-align: center;">
+                <p class="small mb-4" style="color: #ffcc00;">Has alcanzado el límite de 3 citas por día para este número.</p>
+                <a href="https://wa.me/573222326119?text=Hola,%20deseo%20agendar%20m%C3%A1s%20citas%20y%20alcanc%C3%A9%20el%20l%C3%ADmite%20en%20la%20p%C3%A1gina%20web." target="_blank" class="btn-confirm-reserva" style="display: inline-block; text-decoration: none;">Contactar por WhatsApp</a>
+                <button onclick="regresarPaso1()" class="btn-back-step">Volver atrás</button>
+            </div>
         </div>
     </div>
 

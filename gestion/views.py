@@ -43,27 +43,49 @@ def logout_view(request):
     return redirect('login')
 
 # gestion/views.py
+from datetime import timedelta
+
+def auto_completar_citas():
+    # Buscar citas En_Atencion cuya hora_llegada fue hace más de 2 horas
+    limite = timezone.now() - timedelta(hours=2)
+    citas_vencidas = Cita.objects.filter(estado='En_Atencion', hora_llegada__lte=limite)
+    for cita in citas_vencidas:
+        cita.estado = 'Completada'
+        cita.save()
+
 @login_required
 def dashboard_view(request):
     user = request.user
     hoy = timezone.now().date()
     
+    auto_completar_citas()
+    
     if es_dueno_o_superuser(user):
         barberos_qs = Barbero.objects.filter(estado__iexact='activo')
-        citas_qs = Cita.objects.all()
+        citas_qs = Cita.objects.select_related('barbero', 'servicio', 'barbero__sede').all()
+        
+        sede_id = request.GET.get('sede')
+        if sede_id:
+            citas_qs = citas_qs.filter(barbero__sede_id=sede_id)
+            
         citas_hoy_qs = citas_qs.filter(fecha=hoy)
+        citas_activas_hoy = citas_hoy_qs.filter(estado__in=['Confirmada', 'En_Atencion']).order_by('hora')
         servicios_qs = Servicio.objects.filter(activo=True)
+        sedes = Sede.objects.all()
     else:
         mi_sede = Sede.objects.filter(administrador=user).first()
+        sedes = None
         if mi_sede:
             barberos_qs = Barbero.objects.filter(sede=mi_sede, estado__iexact='activo')
-            citas_qs = Cita.objects.filter(barbero__sede=mi_sede)
+            citas_qs = Cita.objects.select_related('barbero', 'servicio').filter(barbero__sede=mi_sede)
             citas_hoy_qs = citas_qs.filter(fecha=hoy)
+            citas_activas_hoy = citas_hoy_qs.filter(estado__in=['Confirmada', 'En_Atencion']).order_by('hora')
             servicios_qs = Servicio.objects.filter(sede=mi_sede, activo=True)
         else:
             barberos_qs = Barbero.objects.none()
             citas_qs = Cita.objects.none()
             citas_hoy_qs = Cita.objects.none()
+            citas_activas_hoy = Cita.objects.none()
             servicios_qs = Servicio.objects.none()
 
     # Estadísticas de hoy
@@ -107,6 +129,9 @@ def dashboard_view(request):
         'ingresos_hoy': ingresos_hoy,
         'chart_labels': chart_labels,
         'chart_data': chart_data,
+        'citas_activas_hoy': citas_activas_hoy,
+        'sedes': sedes,
+        'sede_seleccionada': request.GET.get('sede', ''),
     }
     return render(request, 'gestion/dashboard.html', context)
 
@@ -379,12 +404,12 @@ def citas_globales_view(request):
     # Get all barberos and sedes for filtering
     if es_dueno_o_superuser(user):
         barberos = Barbero.objects.all()
-        citas = Cita.objects.all()
+        citas = Cita.objects.select_related('barbero', 'servicio', 'barbero__sede').all()
         sedes = Sede.objects.all()
     else:
         mi_sede = Sede.objects.filter(administrador=user).first()
         barberos = Barbero.objects.filter(sede=mi_sede)
-        citas = Cita.objects.filter(barbero__sede=mi_sede)
+        citas = Cita.objects.select_related('barbero', 'servicio').filter(barbero__sede=mi_sede)
         sedes = Sede.objects.filter(id=mi_sede.id)
 
     # Apply filters
@@ -392,6 +417,10 @@ def citas_globales_view(request):
     barbero_filtro = request.GET.get('barbero')
     estado_filtro = request.GET.get('estado')
     sede_filtro = request.GET.get('sede')
+
+    # Por defecto mostrar solo historial
+    if not estado_filtro:
+        citas = citas.filter(estado__in=['Completada', 'Cancelada', 'No_Asistio'])
 
     if fecha_filtro:
         citas = citas.filter(fecha=fecha_filtro)
@@ -425,16 +454,26 @@ def cambiar_estado_cita(request, cita_id, nuevo_estado):
     if is_barbero:
         if cita.barbero != user.barbero:
             return HttpResponseForbidden("No puedes modificar citas de otros barberos.")
+        
+        # Validación: El barbero solo puede finalizar si el cliente ya llegó
+        if nuevo_estado == 'Completada' and cita.estado != 'En_Atencion':
+            messages.error(request, "No puedes finalizar el servicio. El administrador aún no ha confirmado que el cliente llegó a su cita.")
+            return redirect(request.GET.get('next', 'dashboard_barbero'))
+            
     else:
         if not es_dueno_o_superuser(user):
             mi_sede = Sede.objects.filter(administrador=user).first()
             if not mi_sede or cita.barbero.sede != mi_sede:
                 return HttpResponseForbidden("No puedes modificar citas de otra sede.")
                 
-    if nuevo_estado in ['Confirmada', 'Completada', 'Cancelada', 'Pendiente']:
+    if nuevo_estado in ['Confirmada', 'En_Atencion', 'No_Asistio', 'Completada', 'Cancelada', 'Pendiente']:
         cita.estado = nuevo_estado
         if nuevo_estado == 'Confirmada':
             cita.verificado = True
+        elif nuevo_estado == 'En_Atencion':
+            cita.verificado = True
+            cita.hora_llegada = timezone.now()
+            
         cita.save()
         messages.success(request, f"Cita actualizada a {cita.get_estado_display()} con éxito.")
         

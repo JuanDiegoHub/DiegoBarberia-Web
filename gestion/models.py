@@ -50,8 +50,10 @@ class Cita(models.Model):
     # Estados de la cita
     ESTADO_CHOICES = [
         ('Pendiente', 'Pendiente de Verificación'),
-        ('Confirmada', 'Confirmada'),
+        ('Confirmada', 'Confirmada (Esperando Cliente)'),
+        ('En_Atencion', 'Cliente en Barbería'),
         ('Completada', 'Servicio Finalizado'),
+        ('No_Asistio', 'No Asistió'),
         ('Cancelada', 'Cancelada'),
     ]
 
@@ -62,6 +64,7 @@ class Cita(models.Model):
     )
 
     telefono = models.CharField(validators=[phone_regex], max_length=17)
+    cliente_nombre = models.CharField(max_length=100, default='Cliente')
     # Relación con el Barbero que ya creamos
     barbero = models.ForeignKey('Barbero', on_delete=models.CASCADE, related_name='citas')
     servicio = models.ForeignKey(Servicio, on_delete=models.SET_NULL, null=True, blank=True, related_name='citas')
@@ -70,8 +73,10 @@ class Cita(models.Model):
     
     # Campos de control
     codigo_verificacion = models.CharField(max_length=6, blank=True, null=True)
+    intentos_verificacion = models.IntegerField(default=0)
     verificado = models.BooleanField(default=False)
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='Pendiente')
+    hora_llegada = models.DateTimeField(null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     class Meta:

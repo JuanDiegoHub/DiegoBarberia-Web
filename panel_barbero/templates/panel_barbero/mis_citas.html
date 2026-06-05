@@ -69,6 +69,51 @@
         .col-md-4, .col-md-2 {
             flex: 0 0 100%;
             max-width: 100%;
+            padding: 0;
+        }
+        .card-minimal {
+            padding: 15px !important;
+        }
+        /* Convert table to cards on mobile */
+        .table-minimal thead {
+            display: none;
+        }
+        .table-minimal tbody tr {
+            display: block;
+            margin-bottom: 15px;
+            background: #fff;
+            border: 1px solid #eaeaea;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .table-minimal tbody td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f5f5f5;
+            text-align: right;
+        }
+        .table-minimal tbody td:last-child {
+            border-bottom: none;
+        }
+        .table-minimal tbody td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: #666;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        .table-minimal td > div {
+            text-align: right;
+        }
+        .table-minimal td.text-center {
+            text-align: right !important;
+            justify-content: space-between;
+        }
+        .container {
+            padding: 10px;
         }
     }
 </style>
@@ -127,37 +172,38 @@
                 <tbody>
                     {% for cita in citas %}
                     <tr>
-                        <td>
-                            <div class="fw-bold">{{ cita.fecha|date:"d/m/Y" }}</div>
-                            <div class="text-muted small">{{ cita.hora|time:"H:i" }}</div>
+                        <td data-label="Fecha / Hora">
+                            <div>
+                                <div class="fw-bold">{{ cita.fecha|date:"d/m/Y" }}</div>
+                                <div class="text-muted small">{{ cita.hora|time:"H:i" }}</div>
+                            </div>
                         </td>
-                        <td>
-                            <span class="text-dark">{{ cita.telefono }}</span>
+                        <td data-label="Cliente">
+                            <span class="text-dark">{{ cita.cliente_nombre }}</span><br>
+                            <small class="text-muted">{{ cita.telefono }}</small>
                         </td>
-                        <td>
+                        <td data-label="Verificación">
                             {% if cita.verificado %}
                                 <span class="badge-status verificado" style="color: #00695c; background: #e0f2f1; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">Verificado</span>
                             {% else %}
                                 <span class="badge-status no-verificado" style="color: #e65100; background: #fff3e0; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">Sin Verificar</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td data-label="Estado">
                             <span class="state-badge {{ cita.estado|lower }}" style="padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; display: inline-block;
-                                {% if cita.estado == 'Confirmada' %}color: #2e7d32; background-color: #e8f5e9;
-                                {% elif cita.estado == 'Pendiente' %}color: #ef6c00; background-color: #fff3e0;
+                                {% if cita.estado == 'Confirmada' %}color: #ef6c00; background-color: #fff3e0;
+                                {% elif cita.estado == 'En_Atencion' %}color: #2e7d32; background-color: #e8f5e9;
+                                {% elif cita.estado == 'Pendiente' %}color: #8d6e63; background-color: #efebe9;
                                 {% elif cita.estado == 'Completada' %}color: #1565c0; background-color: #e3f2fd;
                                 {% else %}color: #c62828; background-color: #ffebee;{% endif %}">
                                 {{ cita.get_estado_display }}
                             </span>
                         </td>
-                        <td class="text-center">
-                            <div class="d-flex gap-1 justify-content-center">
-                                {% if cita.estado == 'Pendiente' or cita.estado == 'Confirmada' %}
-                                <a href="{% url 'cambiar_estado_cita' cita.id 'Completada' %}?next=mis_citas_barbero" class="btn-icon" style="color: #2e7d32;" title="Completar Servicio">
+                        <td class="text-center" data-label="Acciones">
+                            <div class="d-flex gap-1 justify-content-end">
+                                {% if cita.estado == 'En_Atencion' or cita.estado == 'Confirmada' %}
+                                <a href="{% url 'cambiar_estado_cita' cita.id 'Completada' %}?next=mis_citas_barbero" class="btn-icon" style="{% if cita.estado == 'Confirmada' %}color: #9e9e9e;{% else %}color: #2e7d32;{% endif %}" title="Finalizar Servicio">
                                     <span class="material-symbols-outlined">check_circle</span>
-                                </a>
-                                <a href="{% url 'cambiar_estado_cita' cita.id 'Cancelada' %}?next=mis_citas_barbero" class="btn-icon btn-icon-danger" style="color: #c62828;" title="Cancelar Cita">
-                                    <span class="material-symbols-outlined">cancel</span>
                                 </a>
                                 {% endif %}
                             </div>

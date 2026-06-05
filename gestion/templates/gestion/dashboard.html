@@ -62,6 +62,7 @@
     </div>
 </div>
 
+{% if user.is_superuser %}
 <div class="dashboard-row" style="margin-top: 30px;">
     <div class="chart-card" style="background: white; border: 1px solid #eee; padding: 25px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
         <h3 style="margin-top: 0; margin-bottom: 20px; font-weight: 600; color: #1a1a1a; font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
@@ -73,66 +74,185 @@
         </div>
     </div>
 </div>
+{% endif %}
+
+<div class="dashboard-row" style="margin-top: 30px;">
+    <div class="chart-card" style="background: white; border: 1px solid #eee; padding: 25px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+            <h3 style="margin: 0; font-weight: 600; color: #1a1a1a; font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
+                <span class="material-symbols-outlined" style="color: #c5a059;">list_alt</span>
+                Citas de Hoy (Recepción)
+            </h3>
+            {% if user.is_superuser %}
+            <form method="GET" action="" style="display: flex; align-items: center; gap: 10px;">
+                <label for="sede" style="color: #666; font-size: 0.9rem; margin: 0;">Sede:</label>
+                <select id="sede" name="sede" style="height: 36px; padding: 0 10px; border-radius: 6px; border: 1px solid #ddd; background: #f9f9f9; font-size: 0.9rem; outline: none; transition: border-color 0.3s;" onchange="this.form.submit()">
+                    <option value="">Todas las Sedes</option>
+                    {% for sede in sedes %}
+                    <option value="{{ sede.id }}" {% if sede_seleccionada == sede.id|stringformat:"s" %}selected{% endif %}>{{ sede.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+            {% endif %}
+        </div>
+        <div class="table-responsive">
+            <table class="table table-minimal" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <th style="padding: 10px; text-align: left; color: #666;">Hora</th>
+                        <th style="padding: 10px; text-align: left; color: #666;">Cliente / Teléfono</th>
+                        <th style="padding: 10px; text-align: left; color: #666;">Barbero</th>
+                        <th style="padding: 10px; text-align: left; color: #666;">Estado</th>
+                        <th style="padding: 10px; text-align: center; color: #666;">Check-in</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cita in citas_activas_hoy %}
+                    <tr style="border-bottom: 1px solid #f9f9f9;">
+                        <td style="padding: 12px 10px;"><strong>{{ cita.hora|time:"H:i" }}</strong></td>
+                        <td style="padding: 12px 10px;">{{ cita.cliente_nombre }} <br><small style="color: #666;">{{ cita.telefono }}</small></td>
+                        <td style="padding: 12px 10px;">{{ cita.barbero.nombre }}</td>
+                        <td style="padding: 12px 10px;">
+                            <span class="state-badge {{ cita.estado|lower }}" style="padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; display: inline-block;
+                                {% if cita.estado == 'Confirmada' %}color: #ef6c00; background-color: #fff3e0;
+                                {% elif cita.estado == 'En_Atencion' %}color: #2e7d32; background-color: #e8f5e9;
+                                {% endif %}">
+                                {{ cita.get_estado_display }}
+                            </span>
+                        </td>
+                        <td style="padding: 12px 10px; text-align: center;">
+                            <div style="display: flex; gap: 10px; justify-content: center;">
+                                {% if cita.estado == 'Confirmada' %}
+                                <a href="javascript:void(0)" onclick="confirmAction('{% url 'cambiar_estado_cita' cita.id 'En_Atencion' %}?next=dashboard', 'llego')" class="btn-icon" style="color: #2e7d32; text-decoration: none;" title="Llegó a la Cita">
+                                    <span class="material-symbols-outlined" style="font-size: 1.5rem; border-bottom: 2px solid #2e7d32;">check_circle</span>
+                                </a>
+                                <a href="javascript:void(0)" onclick="confirmAction('{% url 'cambiar_estado_cita' cita.id 'No_Asistio' %}?next=dashboard', 'no_asistio')" class="btn-icon btn-icon-danger" style="color: #c62828; text-decoration: none;" title="No Asistió">
+                                    <span class="material-symbols-outlined" style="font-size: 1.5rem; border-bottom: 2px solid #c62828;">cancel</span>
+                                </a>
+                                {% elif cita.estado == 'En_Atencion' %}
+                                <span style="color: #2e7d32; font-size: 0.85rem; font-weight: 500;"><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">person_check</span> Cliente en barbería</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 30px; color: #888;">
+                            No hay citas activas para el día de hoy.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmación -->
+<div id="confirmModal" class="modal-overlay" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.6); z-index: 9999;">
+    <div class="modal-content" style="background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1); animation: modalIn 0.3s ease-out;">
+        <h3 id="confirmTitle" style="margin-top: 0; color: #1a1a1a; font-size: 1.25rem; font-weight: 700;">Confirmar Acción</h3>
+        <p id="confirmMessage" style="color: #666; margin-bottom: 25px; font-size: 1rem;">¿Estás seguro de continuar?</p>
+        <div style="display: flex; justify-content: center; gap: 15px;">
+            <button onclick="closeConfirmModal()" style="min-width: 130px; padding: 10px 20px; border-radius: 8px; border: 1px solid #ccc; background: white; color: #333; font-weight: 600; font-size: 1rem; cursor: pointer; transition: background 0.3s;">Cancelar</button>
+            <a id="confirmBtn" href="#" style="min-width: 130px; padding: 10px 20px; border-radius: 8px; color: #ffffff; font-weight: 600; font-size: 1rem; text-decoration: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: opacity 0.3s;">Aceptar</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmAction(url, actionType) {
+    const modal = document.getElementById('confirmModal');
+    const title = document.getElementById('confirmTitle');
+    const message = document.getElementById('confirmMessage');
+    const confirmBtn = document.getElementById('confirmBtn');
+    
+    if (actionType === 'llego') {
+        title.innerText = 'Cliente Llegó';
+        message.innerText = '¿Confirmar que el cliente llegó a la barbería?';
+        confirmBtn.style.backgroundColor = '#15803d';
+        confirmBtn.style.borderColor = '#15803d';
+        confirmBtn.style.color = '#ffffff';
+    } else if (actionType === 'no_asistio') {
+        title.innerText = 'Cliente No Asistió';
+        message.innerText = '¿Confirmar que el cliente NO asistió a su cita?';
+        confirmBtn.style.backgroundColor = '#b91c1c';
+        confirmBtn.style.borderColor = '#b91c1c';
+        confirmBtn.style.color = '#ffffff';
+    }
+    
+    confirmBtn.href = url;
+    modal.style.display = 'flex';
+}
+
+function closeConfirmModal() {
+    document.getElementById('confirmModal').style.display = 'none';
+}
+</script>
 
 <!-- Cargar Chart.js -->
+{% if user.is_superuser %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const ctx = document.getElementById('appointmentsChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: {{ chart_labels|safe }},
-                datasets: [{
-                    label: 'Citas Confirmadas',
-                    data: {{ chart_data|safe }},
-                    backgroundColor: 'rgba(197, 160, 89, 0.25)', // Color dorado suave
-                    borderColor: 'rgba(197, 160, 89, 1)',
-                    borderWidth: 2,
-                    borderRadius: 6,
-                    hoverBackgroundColor: 'rgba(197, 160, 89, 0.5)',
-                    hoverBorderColor: 'rgba(197, 160, 89, 1)'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1,
-                            precision: 0,
-                            color: '#666'
-                        },
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            color: '#666'
-                        },
-                        grid: {
-                            display: false
-                        }
-                    }
+        const ctx = document.getElementById('appointmentsChart');
+        if (ctx) {
+            new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: {{ chart_labels|safe }},
+                    datasets: [{
+                        label: 'Citas Confirmadas',
+                        data: {{ chart_data|safe }},
+                        backgroundColor: 'rgba(197, 160, 89, 0.25)', // Color dorado suave
+                        borderColor: 'rgba(197, 160, 89, 1)',
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        hoverBackgroundColor: 'rgba(197, 160, 89, 0.5)',
+                        hoverBorderColor: 'rgba(197, 160, 89, 1)'
+                    }]
                 },
-                plugins: {
-                    legend: {
-                        display: false
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                precision: 0,
+                                color: '#666'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#666'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
                     },
-                    tooltip: {
-                        backgroundColor: '#1a1a1a',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        cornerRadius: 8,
-                        padding: 10,
-                        displayColors: false
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: '#1a1a1a',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            cornerRadius: 8,
+                            padding: 10,
+                            displayColors: false
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
     });
 </script>
+{% endif %}
 {% endblock %}

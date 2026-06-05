@@ -1,17 +1,23 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseForbidden
 from .decorators import barbero_required
-
-from django.shortcuts import render
 from django.utils import timezone
-from .decorators import barbero_required
-from gestion.models import Cita, HorarioBarbero
+from datetime import timedelta
+from django.db.models import Sum
+from gestion.models import Cita, HorarioBarbero, Barbero
+from gestion.views import auto_completar_citas
 
-@barbero_required
+@login_required
 def dashboard_barbero(request):
-    barbero = request.user.barbero
+    try:
+        barbero = request.user.barbero
+    except Barbero.DoesNotExist:
+        return redirect('login')
+
+    auto_completar_citas()
+
     hoy = timezone.now().date()
     
     # Filtramos: Solo sus citas Y que sean de hoy
@@ -29,7 +35,13 @@ def dashboard_barbero(request):
 
 @barbero_required
 def mis_citas_barbero(request):
-    barbero = request.user.barbero
+    try:
+        barbero = request.user.barbero
+    except Barbero.DoesNotExist:
+        return redirect('login')
+        
+    auto_completar_citas()
+
     citas = Cita.objects.filter(barbero=barbero)
     
     # Filters

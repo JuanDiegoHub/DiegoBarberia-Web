@@ -4,10 +4,19 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from gestion.models import Barbero, Cita, Sede, Servicio, HorarioSede, HorarioBarbero
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.core.cache import cache
 import json
 import random
- # Importante: Ajusta 'gestion' al nombre real de tu app de sedes
+from datetime import timedelta, datetime, time
+from django.utils import timezone
+
+def liberar_citas_pendientes():
+    limite = timezone.now() - timedelta(minutes=10)
+    Cita.objects.filter(estado='Pendiente', fecha_creacion__lte=limite).delete()
+
 def index_view(request):
+    liberar_citas_pendientes()
     # Traemos todas las sedes registradas en la base de datos
     sedes = Sede.objects.all() 
     
@@ -110,10 +119,6 @@ def verificar_disponibilidad(request):
 
     return JsonResponse({'disponible': not existe})
 
-from datetime import timedelta, datetime, time
-import re
-from django.utils import timezone
-
 def obtener_servicios_por_sede(request):
     sede_id = request.GET.get('sede_id')
     servicios_db = Servicio.objects.filter(sede_id=sede_id, activo=True)
@@ -128,6 +133,8 @@ def obtener_servicios_por_sede(request):
     return JsonResponse(lista_servicios, safe=False)
 
 def obtener_horarios_dia(request):
+    liberar_citas_pendientes()
+    
     barbero_id = request.GET.get('barbero_id')
     fecha = request.GET.get('fecha')
     servicio_id = request.GET.get('servicio_id')
@@ -212,6 +219,11 @@ def obtener_horarios_dia(request):
     # 5. Generar slots
     slots = []
     current_mins = start_mins
+    
+    now_local = timezone.localtime()
+    es_hoy = (fecha_obj == now_local.date())
+    ahora_mins = now_local.hour * 60 + now_local.minute
+
     while current_mins + duracion <= end_mins:
         # Validar si se cruza con el almuerzo
         es_almuerzo = False
@@ -233,6 +245,10 @@ def obtener_horarios_dia(request):
                     estado_slot = 'Pendiente'
                 break
                 
+        # Validar si la hora ya pasó (solo para hoy)
+        if es_hoy and current_mins <= ahora_mins:
+            estado_slot = 'Pasado'
+                
         h = current_mins // 60
         m = current_mins % 60
         time_str = f"{h:02d}:{m:02d}"
@@ -253,96 +269,142 @@ def obtener_horarios_dia(request):
         
     return JsonResponse({'slots': slots})
 
+import re
+
+@require_POST
 def crear_cita_pendiente(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        
-        telefono = data.get('telefono')
-        # 1. Validar formato del teléfono
-        if not telefono or not re.match(r'^\+?1?\d{9,15}$', telefono):
-            return JsonResponse({'success': False, 'message': 'Formato de teléfono inválido (debe tener entre 9 y 15 dígitos).'})
+    # 1. Rate Limit por IP (10 por hora)
+    ip = request.META.get('REMOTE_ADDR')
+    cache_key = f"citas_ip_{ip}"
+    intentos_ip = cache.get(cache_key, 0)
+    
+    if intentos_ip >= 10:
+        return JsonResponse({'success': False, 'message': 'Has superado el límite de intentos por hora. Por favor, intenta más tarde.'})
+    
+    cache.set(cache_key, intentos_ip + 1, timeout=3600)
 
-        # 2. Rate limiting / Spam protection (máx 3 citas pendientes por teléfono en la última hora)
-        now = timezone.now()
-        pending_count = Cita.objects.filter(
+    data = json.loads(request.body)
+        
+    telefono = data.get('telefono')
+    # 1. Validar formato del teléfono
+    if not telefono or not re.match(r'^\+?1?\d{9,15}$', telefono):
+        return JsonResponse({'success': False, 'message': 'Formato de teléfono inválido (debe tener entre 9 y 15 dígitos).'})
+
+    # 2. Rate limiting: máx 3 citas por día para la fecha seleccionada
+    fecha_reserva = data.get('fecha')
+    citas_del_dia = Cita.objects.filter(
+        telefono=telefono,
+        fecha=fecha_reserva
+    ).exclude(estado='Cancelada').count()
+    
+    if citas_del_dia >= 3:
+        return JsonResponse({
+            'success': False, 
+            'limite_excedido': True,
+            'message': 'Has alcanzado el límite de 3 citas por día para este número. Si deseas agendar más, contáctanos directamente.'
+        })
+
+    # 3. Validar si el cliente ya tiene una cita agendada a esa misma hora
+    hora_reserva = data.get('hora')
+    cita_misma_hora = Cita.objects.filter(
+        telefono=telefono,
+        fecha=fecha_reserva,
+        hora=hora_reserva
+    ).exclude(estado__in=['Cancelada', 'No_Asistio']).exists()
+
+    if cita_misma_hora:
+        return JsonResponse({
+            'success': False, 
+            'message': 'Ya tienes una cita agendada a esta misma hora con otro barbero. Por favor, selecciona un horario diferente.'
+        })
+
+    # Generar un código aleatorio de 6 dígitos
+    codigo = str(random.randint(100000, 999999))
+    
+    try:
+        barbero = Barbero.objects.get(id=data['barbero_id'])
+        
+        # Buscar el servicio
+        servicio_id = data.get('servicio_id')
+        servicio = None
+        if servicio_id:
+            try:
+                servicio = Servicio.objects.get(id=servicio_id, activo=True)
+            except Servicio.DoesNotExist:
+                return JsonResponse({'success': False, 'message': 'El servicio seleccionado no está activo o no existe.'})
+
+        # Creamos la cita en estado Pendiente
+        cita = Cita.objects.create(
+            barbero=barbero,
+            servicio=servicio,
+            fecha=data['fecha'],
+            hora=data['hora'],
             telefono=telefono,
-            estado='Pendiente',
-            fecha_creacion__gte=now - timedelta(hours=1)
-        ).count()
-        if pending_count >= 3:
-            return JsonResponse({'success': False, 'message': 'Has alcanzado el límite de intentos de reserva por esta hora. Inténtalo más tarde.'})
-
-        # Generar un código aleatorio de 6 dígitos
-        codigo = str(random.randint(100000, 999999))
+            cliente_nombre=data.get('nombre', 'Cliente'),
+            codigo_verificacion=codigo,
+            estado='Pendiente'
+        )
         
-        try:
-            barbero = Barbero.objects.get(id=data['barbero_id'])
-            
-            # Buscar el servicio
-            servicio_id = data.get('servicio_id')
-            servicio = None
-            if servicio_id:
-                try:
-                    servicio = Servicio.objects.get(id=servicio_id, activo=True)
-                except Servicio.DoesNotExist:
-                    return JsonResponse({'success': False, 'message': 'El servicio seleccionado no está activo o no existe.'})
+        respuesta_wa = enviar_whatsapp_otp(telefono, codigo)
+        
+        if respuesta_wa is None or respuesta_wa.get('error'):
+            # Eliminar cita porque no se pudo enviar el mensaje
+            cita.delete()
+            error_msg = respuesta_wa.get('error') if respuesta_wa else 'Error de conexión con el servidor de WhatsApp (UltraMsg).'
+            return JsonResponse({'success': False, 'message': f'No se pudo enviar el código por WhatsApp. Detalle: {error_msg}'})
+        
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
 
-            # Creamos la cita en estado Pendiente
-            cita = Cita.objects.create(
-                barbero=barbero,
-                servicio=servicio,
-                fecha=data['fecha'],
-                hora=data['hora'],
-                telefono=telefono,
-                codigo_verificacion=codigo,
-                estado='Pendiente'
-            )
-            
-            enviar_whatsapp_otp(telefono, codigo)
-            
-            return JsonResponse({'success': True})
-        except Exception as e:
-            return JsonResponse({'success': False, 'message': str(e)})
-
+@require_POST
 def confirmar_codigo_otp(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        telefono = data.get('telefono')
-        codigo_ingresado = data.get('codigo')
+    data = json.loads(request.body)
+    telefono = data.get('telefono')
+    codigo_ingresado = data.get('codigo')
         
-        try:
-            # Buscamos la última cita pendiente de ese teléfono
-            cita = Cita.objects.filter(telefono=telefono, estado='Pendiente').latest('fecha_creacion')
+    try:
+        # Buscamos la última cita pendiente de ese teléfono
+        cita = Cita.objects.filter(telefono=telefono, estado='Pendiente').latest('fecha_creacion')
+        
+        # Validar expiración (10 minutos)
+        if timezone.now() - cita.fecha_creacion > timedelta(minutes=10):
+            cita.delete()
+            return JsonResponse({'verificado': False, 'message': 'El código OTP ha expirado (límite de 10 minutos). Por favor solicita una nueva cita.'})
+
+        if cita.codigo_verificacion == codigo_ingresado:
+            cita.estado = 'Confirmada'
+            cita.verificado = True
+            cita.save()
+            return JsonResponse({'verificado': True})
+        else:
+            cita.intentos_verificacion += 1
+            cita.save()
+            if cita.intentos_verificacion >= 3:
+                cita.delete()
+                return JsonResponse({'verificado': False, 'message': 'Demasiados intentos fallidos. Tu reserva ha sido eliminada por seguridad.'})
+            return JsonResponse({'verificado': False, 'message': f'Código incorrecto. Te quedan {3 - cita.intentos_verificacion} intentos.'})
             
-            # Validar expiración (10 minutos)
-            if timezone.now() - cita.fecha_creacion > timedelta(minutes=10):
-                cita.estado = 'Cancelada'
-                cita.save()
-                return JsonResponse({'verificado': False, 'message': 'El código OTP ha expirado (límite de 10 minutos). Por favor solicita una nueva cita.'})
+    except Cita.DoesNotExist:
+        return JsonResponse({'verificado': False, 'message': 'No se encontró una reserva pendiente'})
 
-            if cita.codigo_verificacion == codigo_ingresado:
-                cita.estado = 'Confirmada'
-                cita.verificado = True
-                cita.save()
-                return JsonResponse({'verificado': True})
-            else:
-                return JsonResponse({'verificado': False, 'message': 'Código incorrecto'})
-                
-        except Cita.DoesNotExist:
-            return JsonResponse({'verificado': False, 'message': 'No se encontró una reserva pendiente'})
-
+@require_POST
 def cancelar_reserva_pendiente(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        telefono = data.get('telefono')
+    data = json.loads(request.body)
+    telefono = data.get('telefono')
+    barbero_id = data.get('barbero_id')
+    fecha = data.get('fecha')
+    hora = data.get('hora')
+    
+    if telefono and barbero_id and fecha and hora:
+        citas_a_borrar = Cita.objects.filter(
+            telefono=telefono, 
+            barbero_id=barbero_id,
+            fecha=fecha,
+            hora=hora,
+            estado='Pendiente'
+        )
+        citas_a_borrar.delete()
+        return JsonResponse({'status': 'eliminada'})
         
-        if telefono:
-            # Filtramos estrictamente por Pendiente para liberar el turno
-            citas_a_borrar = Cita.objects.filter(
-                telefono=telefono, 
-                estado='Pendiente'
-            )
-            citas_a_borrar.delete()
-            return JsonResponse({'status': 'eliminada'})
-            
-        return JsonResponse({'status': 'no_data'}, status=400)
+    return JsonResponse({'status': 'no_data'}, status=400)

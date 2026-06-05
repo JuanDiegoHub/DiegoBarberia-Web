@@ -26,6 +26,77 @@ function isDateInPast(year, month, day) {
     return day < hoyDay;
 }
 
+// Sistema de Notificaciones (Toast)
+function showToast(message, type = 'error') {
+    // Eliminar toast anterior si existe
+    const existingToast = document.getElementById('barber-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+
+    const toast = document.createElement('div');
+    toast.id = 'barber-toast';
+    
+    // Estilos base
+    toast.style.position = 'fixed';
+    toast.style.top = '20px';
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.padding = '15px 20px';
+    toast.style.borderRadius = '8px';
+    toast.style.color = '#fff';
+    toast.style.fontWeight = '500';
+    toast.style.fontSize = '0.95rem';
+    toast.style.zIndex = '10000';
+    toast.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)';
+    toast.style.display = 'flex';
+    toast.style.alignItems = 'center';
+    toast.style.gap = '15px';
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s ease, top 0.3s ease';
+    toast.style.width = '90%';
+    toast.style.maxWidth = '500px';
+    toast.style.textAlign = 'left';
+    toast.style.lineHeight = '1.4';
+
+    // Colores e iconos según el tipo
+    let iconName = 'info';
+    if (type === 'error') {
+        toast.style.backgroundColor = '#ef4444'; // Rojo moderno
+        iconName = 'error';
+    } else if (type === 'success') {
+        toast.style.backgroundColor = '#10b981'; // Verde moderno
+        iconName = 'check_circle';
+    } else if (type === 'warning') {
+        toast.style.backgroundColor = '#f59e0b'; // Naranja moderno
+        iconName = 'warning';
+    }
+
+    toast.innerHTML = `
+        <span class="material-symbols-outlined" style="font-size: 1.2rem;">${iconName}</span>
+        <span>${message}</span>
+    `;
+
+    document.body.appendChild(toast);
+
+    // Animar entrada
+    setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.top = '30px';
+    }, 10);
+
+    // Ocultar y remover después de 4 segundos
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.top = '10px';
+        setTimeout(() => {
+            if (document.body.contains(toast)) {
+                toast.remove();
+            }
+        }, 300);
+    }, 4000);
+}
+
 // 1. Lógica de selección de Sede y Carga de Servicios
 document.getElementById('select-sede').addEventListener('change', function() {
     const sedeId = this.value;
@@ -244,6 +315,10 @@ function cargarSlots(barberoId, dateStr) {
                         extraClass = ' occupied';
                         clickHandler = '';
                         badge = '<span style="font-size: 8px; opacity: 0.6; text-transform: uppercase;">Ocupado</span>';
+                    } else if (slot.estado === 'Pasado') {
+                        extraClass = ' occupied';
+                        clickHandler = '';
+                        badge = '<span style="font-size: 8px; opacity: 0.6; text-transform: uppercase;">Pasado</span>';
                     } else if (slot.estado === 'Pendiente') {
                         extraClass = ' pending';
                         clickHandler = '';
@@ -297,7 +372,7 @@ function solicitarCodigo() {
     const telefono = document.getElementById('cliente-telefono').value;
 
     if (!nombre || !telefono) {
-        alert("Por favor completa tus datos");
+        showToast("Por favor completa tus datos", "warning");
         return;
     }
 
@@ -319,14 +394,18 @@ function solicitarCodigo() {
             document.getElementById('paso-datos').style.display = 'none';
             document.getElementById('paso-verificacion').style.display = 'block';
             document.getElementById('modal-titulo').innerText = "Verifica tu Cita";
+        } else if (data.limite_excedido) {
+            document.getElementById('paso-datos').style.display = 'none';
+            document.getElementById('paso-limite-excedido').style.display = 'block';
+            document.getElementById('modal-titulo').innerText = "Límite Excedido";
         } else {
-            alert("Error: " + data.message);
+            showToast(data.message, "error");
             document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('selected'));
         }
     })
     .catch(err => {
         console.error("Error al solicitar código:", err);
-        alert("Ocurrió un error al procesar tu solicitud.");
+        showToast("Ocurrió un error al procesar tu solicitud.", "error");
     });
 }
 
@@ -347,15 +426,17 @@ function confirmarCitaFinal() {
     .then(res => res.json())
     .then(data => {
         if (data.verificado) {
-            alert("¡Cita agendada con éxito! Te esperamos.");
-            location.reload(); // Recargar para ver la cita confirmada
+            showToast("¡Cita agendada con éxito! Te esperamos.", "success");
+            setTimeout(() => {
+                location.reload(); // Recargar para ver la cita confirmada
+            }, 2000);
         } else {
-            alert("Código incorrecto o expirado. Revisa tu WhatsApp.");
+            showToast("Código incorrecto o expirado. Revisa tu WhatsApp.", "error");
         }
     })
     .catch(err => {
         console.error("Error al confirmar cita:", err);
-        alert("Ocurrió un error al verificar tu código.");
+        showToast("Ocurrió un error al verificar tu código.", "error");
     });
 }
 
@@ -370,7 +451,10 @@ function cerrarModal() {
                 'X-CSRFToken': getCsrfToken()
             },
             body: JSON.stringify({
-                telefono: reservaTemporal.telefono
+                telefono: reservaTemporal.telefono,
+                barbero_id: reservaTemporal.barbero_id,
+                fecha: reservaTemporal.fecha,
+                hora: reservaTemporal.hora
             })
         })
         .then(res => res.json())
@@ -392,5 +476,7 @@ function cerrarModal() {
 function regresarPaso1() {
     document.getElementById('paso-datos').style.display = 'block';
     document.getElementById('paso-verificacion').style.display = 'none';
+    const pasoLimite = document.getElementById('paso-limite-excedido');
+    if (pasoLimite) pasoLimite.style.display = 'none';
     document.getElementById('modal-titulo').innerText = "Agendar Cita";
 }
