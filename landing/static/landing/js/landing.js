@@ -297,7 +297,7 @@ function cargarSlots(barberoId, dateStr) {
 
     slotsWrapper.innerHTML = '<p class="opacity-50 small">Buscando horarios...</p>';
 
-    fetch(`/ajax/horarios-dia/?barbero_id=${barberoId}&fecha=${dateStr}&servicio_id=${servicioId}`)
+    fetch(`/ajax/horarios-dia/?barbero_id=${barberoId}&fecha=${dateStr}&servicio_id=${servicioId}&_=${new Date().getTime()}`)
         .then(res => res.json())
         .then(data => {
             slotsWrapper.innerHTML = '';

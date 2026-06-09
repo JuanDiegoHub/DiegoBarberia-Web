@@ -39,11 +39,16 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-b8uf#1!(g+shhx0u!wv+y
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
-allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '')
+allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '*')
 if allowed_hosts_env:
     ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
 else:
-    ALLOWED_HOSTS = []
+    ALLOWED_HOSTS = ['*']
+
+CSRF_TRUSTED_ORIGINS = ['https://*.up.railway.app', 'https://*.railway.app']
+csrf_env = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+if csrf_env:
+    CSRF_TRUSTED_ORIGINS.extend([h.strip() for h in csrf_env.split(',') if h.strip()])
 
 
 # Application definition

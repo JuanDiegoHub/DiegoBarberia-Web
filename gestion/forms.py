@@ -133,3 +133,45 @@ class CrearSedeForm(forms.Form):
             sede_administrada__isnull=True,
             is_superuser=False
         )
+
+from .models import Cita
+
+class CitaManualForm(forms.ModelForm):
+    # Campos extra para el reagendamiento
+    MOTIVO_CHOICES = [
+        ('', 'Seleccione un motivo'),
+        ('barbero_no_disponible', 'Barbero no se encuentra disponible'),
+        ('dia_descanso', 'Día no disponible por descanso'),
+        ('otro', 'Otro'),
+    ]
+    motivo_reagendamiento = forms.ChoiceField(
+        choices=MOTIVO_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control-minimal', 'id': 'id_motivo_reagendamiento'})
+    )
+    motivo_otro = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control-minimal', 'rows': 2, 'id': 'id_motivo_otro', 'placeholder': 'Especifique el motivo...'})
+    )
+
+    class Meta:
+        model = Cita
+        fields = ['telefono', 'cliente_nombre', 'barbero', 'servicio', 'fecha', 'hora']
+        widgets = {
+            'telefono': forms.TextInput(attrs={'class': 'form-control-minimal', 'placeholder': 'Ej: 3000000000'}),
+            'cliente_nombre': forms.TextInput(attrs={'class': 'form-control-minimal', 'placeholder': 'Nombre del Cliente'}),
+            'barbero': forms.Select(attrs={'class': 'form-control-minimal', 'id': 'select-barbero'}),
+            'servicio': forms.Select(attrs={'class': 'form-control-minimal', 'id': 'select-servicio'}),
+            'fecha': forms.HiddenInput(attrs={'id': 'id_fecha_hidden'}),
+            'hora': forms.HiddenInput(attrs={'id': 'id_hora_hidden'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.sede = kwargs.pop('sede', None)
+        super().__init__(*args, **kwargs)
+        
+        self.fields['servicio'].required = True
+        
+        if self.sede:
+            self.fields['barbero'].queryset = Barbero.objects.filter(sede=self.sede, estado='activo')
+            self.fields['servicio'].queryset = Servicio.objects.filter(sede=self.sede, activo=True)

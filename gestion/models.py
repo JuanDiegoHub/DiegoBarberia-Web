@@ -75,6 +75,7 @@ class Cita(models.Model):
     codigo_verificacion = models.CharField(max_length=6, blank=True, null=True)
     intentos_verificacion = models.IntegerField(default=0)
     verificado = models.BooleanField(default=False)
+    recordatorio_enviado = models.BooleanField(default=False)
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='Pendiente')
     hora_llegada = models.DateTimeField(null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)

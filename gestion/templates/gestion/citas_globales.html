@@ -87,17 +87,25 @@
             <h2 class="mb-1">Citas Globales</h2>
             <p class="text-muted mb-0 small">Consulta y administra las citas agendadas</p>
         </div>
+        <a href="{% url 'agendar_cita_manual' %}" class="btn-barberapp d-flex align-items-center gap-2" style="height: 42px; padding: 0 20px;">
+            <span class="material-symbols-outlined">add_circle</span> Nueva Cita
+        </a>
     </div>
 
     <!-- Filtros -->
     <div class="card card-minimal mb-4 p-4">
         <form method="GET" action="" class="row g-3 align-items-end">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label for="fecha" class="form-label">Fecha</label>
                 <input type="date" id="fecha" name="fecha" value="{{ fecha_filtro|default:'' }}" class="form-control-minimal w-100" style="border-radius: 6px; padding: 0 15px; border: 1px solid var(--border-color); height: 42px; background-color: #f8fafc; box-sizing: border-box;">
             </div>
+
+            <div class="col-md-2">
+                <label for="telefono" class="form-label">Teléfono</label>
+                <input type="text" id="telefono" name="telefono" value="{{ telefono_filtro|default:'' }}" placeholder="Ej: 300..." class="form-control-minimal w-100" style="border-radius: 6px; padding: 0 15px; border: 1px solid var(--border-color); height: 42px; background-color: #f8fafc; box-sizing: border-box;">
+            </div>
             
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label for="barbero" class="form-label">Barbero</label>
                 <select id="barbero" name="barbero" class="form-select-minimal w-100" style="height: 42px; padding: 0 15px; box-sizing: border-box;">
                     <option value="">Todos los barberos</option>
@@ -149,7 +157,7 @@
             <table class="table table-minimal">
                 <thead>
                     <tr>
-                        <th style="width: 10%" class="text-center">Acciones</th>
+                        <th style="width: 10%" class="text-center">Acción</th>
                         <th style="width: 15%">Fecha/Hora</th>
                         <th style="width: 20%">Cliente (Teléfono)</th>
                         <th style="width: 20%">Barbero</th>
@@ -162,13 +170,10 @@
                     {% for cita in citas %}
                     <tr>
                         <td class="text-center">
-                            <div class="d-flex gap-1 justify-content-center">
+                            <div class="d-flex justify-content-center">
                                 {% if cita.estado == 'Confirmada' %}
-                                <a href="javascript:void(0)" onclick="confirmAction('{% url 'cambiar_estado_cita' cita.id 'En_Atencion' %}?next=citas_globales', 'llego')" class="btn-icon" style="color: #2e7d32;" title="Llegó a la Cita">
-                                    <span class="material-symbols-outlined">check_circle</span>
-                                </a>
-                                <a href="javascript:void(0)" onclick="confirmAction('{% url 'cambiar_estado_cita' cita.id 'No_Asistio' %}?next=citas_globales', 'no_asistio')" class="btn-icon btn-icon-danger" style="color: #c62828;" title="No Asistió">
-                                    <span class="material-symbols-outlined">cancel</span>
+                                <a href="{% url 'editar_cita_manual' cita.id %}" class="btn-barberapp-outline btn-sm d-flex align-items-center justify-content-center gap-1" style="padding: 6px 12px; font-size: 0.85rem;" title="Reagendar Cita">
+                                    <span class="material-symbols-outlined" style="font-size: 16px;">edit_calendar</span> Reagendar
                                 </a>
                                 {% elif cita.estado == 'En_Atencion' %}
                                 <span style="color: #2e7d32; font-size: 0.85rem;"><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">person_check</span> Cliente en barbería</span>
@@ -219,6 +224,51 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Paginación -->
+        {% if citas.has_other_pages %}
+        <div class="d-flex justify-content-center p-3 border-top">
+            <nav aria-label="Navegación de páginas">
+                <ul class="pagination pagination-sm mb-0">
+                    {% if citas.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ citas.previous_page_number }}{% if fecha_filtro %}&fecha={{ fecha_filtro }}{% endif %}{% if barbero_filtro %}&barbero={{ barbero_filtro }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if sede_filtro %}&sede={{ sede_filtro }}{% endif %}{% if telefono_filtro %}&telefono={{ telefono_filtro }}{% endif %}" aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-hidden="true">&laquo;</span>
+                    </li>
+                    {% endif %}
+
+                    {% for i in citas.paginator.page_range %}
+                        {% if citas.number == i %}
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link" style="background-color: var(--primary-color); border-color: var(--primary-color);">{{ i }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" style="color: var(--primary-color);" href="?page={{ i }}{% if fecha_filtro %}&fecha={{ fecha_filtro }}{% endif %}{% if barbero_filtro %}&barbero={{ barbero_filtro }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if sede_filtro %}&sede={{ sede_filtro }}{% endif %}{% if telefono_filtro %}&telefono={{ telefono_filtro }}{% endif %}">{{ i }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if citas.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ citas.next_page_number }}{% if fecha_filtro %}&fecha={{ fecha_filtro }}{% endif %}{% if barbero_filtro %}&barbero={{ barbero_filtro }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if sede_filtro %}&sede={{ sede_filtro }}{% endif %}{% if telefono_filtro %}&telefono={{ telefono_filtro }}{% endif %}" aria-label="Siguiente">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-hidden="true">&raquo;</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
     </div>
 </div>
 

@@ -8,6 +8,7 @@ from django.contrib.auth.models import User, Group
 from .forms import BarberoForm, ServicioForm
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseForbidden
+from django.core.paginator import Paginator
 
 
 def es_dueno_o_superuser(user):
@@ -417,10 +418,11 @@ def citas_globales_view(request):
     barbero_filtro = request.GET.get('barbero')
     estado_filtro = request.GET.get('estado')
     sede_filtro = request.GET.get('sede')
+    telefono_filtro = request.GET.get('telefono')
 
-    # Por defecto mostrar solo historial
+    # Por defecto mostrar solo confirmadas
     if not estado_filtro:
-        citas = citas.filter(estado__in=['Completada', 'Cancelada', 'No_Asistio'])
+        citas = citas.filter(estado='Confirmada')
 
     if fecha_filtro:
         citas = citas.filter(fecha=fecha_filtro)
@@ -430,17 +432,24 @@ def citas_globales_view(request):
         citas = citas.filter(estado=estado_filtro)
     if sede_filtro and es_dueno_o_superuser(user):
         citas = citas.filter(barbero__sede_id=sede_filtro)
+    if telefono_filtro:
+        citas = citas.filter(telefono__icontains=telefono_filtro)
 
     citas = citas.order_by('-fecha', '-hora')
 
+    paginator = Paginator(citas, 15)
+    page_number = request.GET.get('page')
+    citas_page = paginator.get_page(page_number)
+
     context = {
-        'citas': citas,
+        'citas': citas_page,
         'barberos': barberos,
         'sedes': sedes,
         'fecha_filtro': fecha_filtro,
         'barbero_filtro': barbero_filtro,
         'estado_filtro': estado_filtro,
         'sede_filtro': sede_filtro,
+        'telefono_filtro': telefono_filtro,
     }
     return render(request, 'gestion/citas_globales.html', context)
 
@@ -662,3 +671,89 @@ def crear_sede(request):
         form = CrearSedeForm()
 
     return render(request, 'gestion/crear_sede.html', {'form': form})
+
+from .forms import CitaManualForm
+from landing.utils import enviar_whatsapp_reagendamiento, enviar_whatsapp_nueva_cita_admin
+
+@login_required
+def agendar_cita_manual(request):
+    user = request.user
+    if not (es_dueno_o_superuser(user) or Sede.objects.filter(administrador=user).exists()):
+        return HttpResponseForbidden("No tienes permiso para ver esta sección.")
+        
+    sede_admin = None if es_dueno_o_superuser(user) else Sede.objects.filter(administrador=user).first()
+    
+    if request.method == 'POST':
+        form = CitaManualForm(request.POST, sede=sede_admin)
+        if form.is_valid():
+            cita = form.save(commit=False)
+            cita.estado = 'Confirmada'
+            cita.verificado = True
+            cita.save()
+            
+            enviar_whatsapp_nueva_cita_admin(
+                telefono=cita.telefono,
+                nombre_cliente=cita.cliente_nombre,
+                fecha=cita.fecha.strftime("%d/%m/%Y"),
+                hora=cita.hora.strftime("%H:%M"),
+                barbero_nombre=f"{cita.barbero.nombre} {cita.barbero.apellido}",
+                sede_nombre=cita.barbero.sede.nombre
+            )
+            
+            messages.success(request, f"Cita para {cita.cliente_nombre} agendada correctamente.")
+            return redirect('citas_globales')
+    else:
+        form = CitaManualForm(sede=sede_admin)
+        
+    return render(request, 'gestion/cita_manual_form.html', {
+        'form': form,
+        'titulo': 'Agendar Nueva Cita',
+        'es_edicion': False
+    })
+
+@login_required
+def editar_cita_manual(request, cita_id):
+    cita = get_object_or_404(Cita, id=cita_id)
+    user = request.user
+    
+    if not es_dueno_o_superuser(user):
+        sede_admin = Sede.objects.filter(administrador=user).first()
+        if not sede_admin or cita.barbero.sede != sede_admin:
+            return HttpResponseForbidden("No puedes editar citas de otra sede.")
+    else:
+        sede_admin = None
+        
+    if request.method == 'POST':
+        form = CitaManualForm(request.POST, instance=cita, sede=sede_admin)
+        if form.is_valid():
+            cita_guardada = form.save(commit=False)
+            cita_guardada.estado = 'Confirmada'
+            cita_guardada.verificado = True
+            cita_guardada.save()
+            
+            motivo_seleccionado = form.cleaned_data.get('motivo_reagendamiento')
+            if motivo_seleccionado:
+                motivo_texto = dict(form.fields['motivo_reagendamiento'].choices).get(motivo_seleccionado, '')
+                if motivo_seleccionado == 'otro':
+                    motivo_texto = form.cleaned_data.get('motivo_otro', 'Reagendamiento administrativo')
+                    
+                enviar_whatsapp_reagendamiento(
+                    telefono=cita_guardada.telefono,
+                    nombre_cliente=cita_guardada.cliente_nombre,
+                    fecha=cita_guardada.fecha.strftime("%d/%m/%Y"),
+                    hora=cita_guardada.hora.strftime("%H:%M"),
+                    motivo=motivo_texto,
+                    sede_nombre=cita_guardada.barbero.sede.nombre
+                )
+                
+            messages.success(request, f"Cita de {cita.cliente_nombre} reagendada con éxito.")
+            return redirect('citas_globales')
+    else:
+        form = CitaManualForm(instance=cita, sede=sede_admin)
+        
+    return render(request, 'gestion/cita_manual_form.html', {
+        'form': form,
+        'titulo': 'Reagendar Cita',
+        'es_edicion': True,
+        'cita': cita
+    })

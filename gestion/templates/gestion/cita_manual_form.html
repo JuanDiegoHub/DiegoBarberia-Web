@@ -1,0 +1,492 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }} | BarberApp{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Asegurar que los inputs no se desborden de su contenedor y ocupen su columna */
+    .form-control-minimal {
+        box-sizing: border-box !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* Layout Helpers (Sustituto de Bootstrap Grid) */
+    .row { display: flex; flex-wrap: wrap; margin-right: -10px; margin-left: -10px; }
+    .col-md-6, .col-12 { padding-right: 10px; padding-left: 10px; box-sizing: border-box; }
+    .col-12 { flex: 0 0 100%; max-width: 100%; }
+    @media (min-width: 768px) {
+        .col-md-6 { flex: 0 0 50%; max-width: 50%; }
+    }
+    
+    .d-flex { display: flex !important; }
+    .flex-wrap { flex-wrap: wrap !important; }
+    .justify-content-between { justify-content: space-between !important; }
+    .justify-content-center { justify-content: center !important; }
+    .align-items-center { align-items: center !important; }
+    .gap-1 { gap: 0.25rem !important; }
+    .gap-2 { gap: 0.5rem !important; }
+    .gap-3 { gap: 1rem !important; }
+    .gap-4 { gap: 1.5rem !important; }
+    
+    .mb-0 { margin-bottom: 0 !important; }
+    .mb-1 { margin-bottom: 0.25rem !important; }
+    .mb-2 { margin-bottom: 0.5rem !important; }
+    .mb-3 { margin-bottom: 1rem !important; }
+    .mb-4 { margin-bottom: 1.5rem !important; }
+    .mb-5 { margin-bottom: 3rem !important; }
+    .mt-3 { margin-top: 1rem !important; }
+    .mt-4 { margin-top: 1.5rem !important; }
+    .mt-5 { margin-top: 3rem !important; }
+    .pb-2 { padding-bottom: 0.5rem !important; }
+    .pb-3 { padding-bottom: 1rem !important; }
+    .pt-3 { padding-top: 1rem !important; }
+    .p-2 { padding: 0.5rem !important; }
+    .p-3 { padding: 1rem !important; }
+    .p-4 { padding: 1.5rem !important; }
+    .px-2 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+    
+    .w-100 { width: 100% !important; }
+    .h-100 { height: 100% !important; }
+    .text-center { text-align: center !important; }
+    .fw-bold { font-weight: 700 !important; }
+    .small { font-size: 0.875em !important; }
+    .text-muted { color: #6c757d !important; }
+    .text-danger { color: #dc3545 !important; }
+    .text-capitalize { text-transform: capitalize !important; }
+    .border { border: 1px solid #dee2e6 !important; }
+    .border-top { border-top: 1px solid #dee2e6 !important; }
+    .border-bottom { border-bottom: 1px solid #dee2e6 !important; }
+    .rounded { border-radius: 0.5rem !important; }
+    .bg-white { background-color: #fff !important; }
+    .shadow-sm { box-shadow: 0 .125rem .25rem rgba(0,0,0,.075) !important; }
+    .alert { padding: 1rem; margin-bottom: 1rem; border: 1px solid transparent; border-radius: .25rem; }
+    .alert-warning { color: #856404; background-color: #fff3cd; border-color: #ffeeba; }
+    .btn-light { color: #212529; background-color: #f8f9fa; border-color: #f8f9fa; }
+    .btn-sm { padding: .25rem .5rem; font-size: .875rem; border-radius: .2rem; }
+
+    
+    /* Calendario interactivo (Admin View) */
+    .calendar-day {
+        padding: 10px 0;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: 0.2s;
+        border: 1px solid transparent;
+        font-weight: 600;
+        text-align: center;
+        background: #f8fafc;
+    }
+    .calendar-day:hover:not(.disabled) {
+        background-color: #e2e8f0;
+    }
+    .calendar-day.selected {
+        background-color: #1e293b; /* Color dark para admin panel */
+        color: white;
+        border-color: #1e293b;
+    }
+    .calendar-day.disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        background: transparent;
+    }
+    .calendar-day.today {
+        border-color: #1e293b;
+        color: #1e293b;
+    }
+
+    /* Time slots */
+    .time-slot {
+        padding: 10px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+        background: white;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-align: center;
+        min-width: 90px;
+    }
+    .time-slot:hover:not(.pasado) {
+        border-color: #1e293b;
+        background-color: #f1f5f9;
+    }
+    .time-slot.selected {
+        background-color: #1e293b;
+        color: white;
+        border-color: #1e293b;
+    }
+    .time-slot.ocupado {
+        background-color: #fee2e2;
+        border-color: #fca5a5;
+        color: #b91c1c;
+        /* Permitimos click para el admin, pero lo marcamos rojo */
+    }
+    .time-slot.ocupado:hover {
+        background-color: #fecaca;
+    }
+    .time-slot.pasado {
+        opacity: 0.4;
+        cursor: not-allowed;
+        background-color: #f8fafc;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom-minimal">
+        <div>
+            <h2 class="mb-1">{{ titulo }}</h2>
+            <p class="text-muted mb-0 small">
+                {% if es_edicion %}
+                    Reagendando la cita de <strong>{{ cita.cliente_nombre }}</strong>
+                {% else %}
+                    Agenda una nueva cita manualmente sin validación OTP.
+                {% endif %}
+            </p>
+        </div>
+        <a href="{% url 'citas_globales' %}" class="btn-barberapp-outline d-flex align-items-center gap-2" style="height: 42px; padding: 0 20px;">
+            <span class="material-symbols-outlined">arrow_back</span> Volver a Citas
+        </a>
+    </div>
+
+    <div class="card card-minimal p-4 mx-auto" style="max-width: 800px;">
+        <form method="POST" id="form-cita-manual">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="alert alert-danger" style="background: #fee2e2; color: #b91c1c; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                Por favor, corrige los errores abajo.
+                {{ form.errors }}
+            </div>
+            {% endif %}
+
+            <!-- Campos ocultos de fecha y hora que se llenarán con JS -->
+            {{ form.fecha }}
+            {{ form.hora }}
+
+            <div class="row g-3">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Teléfono del Cliente</label>
+                    {{ form.telefono }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Nombre del Cliente</label>
+                    {{ form.cliente_nombre }}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Barbero</label>
+                    {{ form.barbero }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Servicio</label>
+                    {{ form.servicio }}
+                </div>
+
+                <!-- Interfaz del Calendario y Horarios (Reemplaza inputs nativos) -->
+                <div class="col-12 mt-4">
+                    <h5 class="fw-bold mb-3 border-bottom pb-2">Fecha y Hora de la Cita</h5>
+                    
+                    <div class="row g-4">
+                        <!-- Columna Calendario -->
+                        <div class="col-md-6">
+                            <div class="custom-calendar-container border rounded p-3 bg-white shadow-sm" id="admin-calendar-container" style="opacity: 0.5; pointer-events: none;">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <button type="button" id="prev-month" class="btn btn-sm btn-light"><span class="material-symbols-outlined align-middle">chevron_left</span></button>
+                                    <h6 id="calendar-month-year" class="mb-0 text-capitalize fw-bold"></h6>
+                                    <button type="button" id="next-month" class="btn btn-sm btn-light"><span class="material-symbols-outlined align-middle">chevron_right</span></button>
+                                </div>
+                                <div class="d-flex justify-content-between text-muted small fw-bold mb-2 text-center">
+                                    <div style="width: 14%;">Lu</div><div style="width: 14%;">Ma</div><div style="width: 14%;">Mi</div><div style="width: 14%;">Ju</div><div style="width: 14%;">Vi</div><div style="width: 14%;">Sá</div><div style="width: 14%;">Do</div>
+                                </div>
+                                <div id="calendar-days" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Columna Slots -->
+                        <div class="col-md-6">
+                            <div id="slots-container" class="border rounded p-3 bg-white shadow-sm h-100" style="min-height: 300px;">
+                                <h6 class="fw-bold mb-3 text-center" id="selected-date-display" style="color: #64748b;">Selecciona un barbero y servicio</h6>
+                                <p id="slots-info-msg" class="text-muted small text-center mb-0 mt-4">Por favor selecciona primero al Barbero y el Servicio para ver su disponibilidad.</p>
+                                
+                                <div id="slots-wrapper" class="d-flex flex-wrap gap-2 justify-content-center" style="max-height: 250px; overflow-y: auto;">
+                                    <!-- Horarios inyectados por JS -->
+                                </div>
+                                
+                                <!-- Mensaje alerta admin -->
+                                <div id="admin-force-alert" class="alert alert-warning mt-3 p-2 small" style="display: none;">
+                                    <span class="material-symbols-outlined align-middle" style="font-size: 16px;">warning</span> Estás seleccionando un horario <strong>Ocupado</strong>. Se forzará la cita.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if es_edicion %}
+                <div class="col-md-12 mb-3 mt-4 border-top pt-3">
+                    <h5 class="fw-bold" style="color: #c62828;"><span class="material-symbols-outlined align-middle" style="font-size: 1.2rem;">notifications_active</span> Notificación de Reagendamiento</h5>
+                    <p class="small text-muted mb-3">Se enviará un mensaje automático de WhatsApp al cliente informándole el cambio.</p>
+                    
+                    <label class="form-label fw-bold">Motivo del Reagendamiento</label>
+                    {{ form.motivo_reagendamiento }}
+                </div>
+                
+                <div class="col-md-12 mb-3" id="div_motivo_otro" style="display: none;">
+                    <label class="form-label fw-bold">Especifique el motivo</label>
+                    {{ form.motivo_otro }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="d-flex gap-2 mt-4 pt-3 border-top">
+                <button type="submit" id="btn-submit-cita" class="btn-barberapp w-100 py-3 d-flex align-items-center justify-content-center gap-2">
+                    <span class="material-symbols-outlined">save</span> Guardar Cita
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // --- LOGICA DE REAGENDAMIENTO Y OTRO MOTIVO ---
+        const selectMotivo = document.getElementById('id_motivo_reagendamiento');
+        const divOtro = document.getElementById('div_motivo_otro');
+        const inputOtro = document.getElementById('id_motivo_otro');
+
+        if (selectMotivo) {
+            selectMotivo.addEventListener('change', function() {
+                if (this.value === 'otro') {
+                    divOtro.style.display = 'block';
+                    inputOtro.required = true;
+                } else {
+                    divOtro.style.display = 'none';
+                    inputOtro.required = false;
+                    inputOtro.value = '';
+                }
+            });
+            selectMotivo.dispatchEvent(new Event('change'));
+        }
+
+        // --- LOGICA DEL CALENDARIO E INTERFAZ DE HORARIOS ---
+        const selectBarbero = document.getElementById('select-barbero');
+        const selectServicio = document.getElementById('select-servicio');
+        const calendarContainer = document.getElementById('admin-calendar-container');
+        const calendarDays = document.getElementById('calendar-days');
+        const monthYearText = document.getElementById('calendar-month-year');
+        const slotsWrapper = document.getElementById('slots-wrapper');
+        const slotsInfoMsg = document.getElementById('slots-info-msg');
+        const selectedDateDisplay = document.getElementById('selected-date-display');
+        const inputFechaHidden = document.getElementById('id_fecha_hidden');
+        const inputHoraHidden = document.getElementById('id_hora_hidden');
+        const forceAlert = document.getElementById('admin-force-alert');
+        const formCita = document.getElementById('form-cita-manual');
+
+        let currentDate = new Date(); // La fecha que se está visualizando en el mes
+        let selectedDate = null; // string YYYY-MM-DD
+        let selectedSlot = null; // string HH:MM
+
+        // Si ya hay una fecha precargada (ej: en edición)
+        if (inputFechaHidden && inputFechaHidden.value) {
+            selectedDate = inputFechaHidden.value;
+            let parts = selectedDate.split('-');
+            currentDate = new Date(parts[0], parts[1]-1, parts[2]);
+        }
+        if (inputHoraHidden && inputHoraHidden.value) {
+            // Extraer solo HH:MM
+            let t = inputHoraHidden.value;
+            if (t.length >= 5) selectedSlot = t.substring(0,5);
+        }
+
+        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+        function checkRequirements() {
+            if (selectBarbero.value && selectServicio.value) {
+                calendarContainer.style.opacity = '1';
+                calendarContainer.style.pointerEvents = 'auto';
+                if (!selectedDate) {
+                    slotsInfoMsg.textContent = "Selecciona un día en el calendario.";
+                    slotsInfoMsg.style.display = 'block';
+                    slotsWrapper.innerHTML = '';
+                    selectedDateDisplay.textContent = "Día no seleccionado";
+                } else {
+                    cargarHorarios();
+                }
+            } else {
+                calendarContainer.style.opacity = '0.5';
+                calendarContainer.style.pointerEvents = 'none';
+                slotsInfoMsg.textContent = "Por favor selecciona primero al Barbero y el Servicio.";
+                slotsInfoMsg.style.display = 'block';
+                slotsWrapper.innerHTML = '';
+                selectedDateDisplay.textContent = "Esperando barbero...";
+            }
+        }
+
+        selectBarbero.addEventListener('change', checkRequirements);
+        selectServicio.addEventListener('change', checkRequirements);
+
+        function renderCalendar() {
+            calendarDays.innerHTML = '';
+            
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            monthYearText.textContent = `${meses[month]} ${year}`;
+            
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const lastDay = new Date(year, month + 1, 0).getDate();
+            
+            // Ajustar para que la semana empiece en Lunes (0)
+            const firstDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+            
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            // Celdas vacías al principio
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.classList.add('calendar-day', 'disabled');
+                calendarDays.appendChild(emptyDiv);
+            }
+            
+            // Días del mes
+            for (let i = 1; i <= lastDay; i++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.classList.add('calendar-day');
+                dayDiv.textContent = i;
+                
+                const cellDate = new Date(year, month, i);
+                const cellDateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+                
+                // Deshabilitar días pasados
+                if (cellDate < today) {
+                    dayDiv.classList.add('disabled');
+                } else {
+                    // Marcar día seleccionado
+                    if (selectedDate === cellDateStr) {
+                        dayDiv.classList.add('selected');
+                    }
+                    // Marcar hoy
+                    if (cellDate.getTime() === today.getTime() && selectedDate !== cellDateStr) {
+                        dayDiv.classList.add('today');
+                    }
+
+                    dayDiv.addEventListener('click', function() {
+                        // Remover clase selected de todos
+                        document.querySelectorAll('.calendar-day.selected').forEach(el => el.classList.remove('selected'));
+                        this.classList.add('selected');
+                        
+                        selectedDate = cellDateStr;
+                        inputFechaHidden.value = selectedDate;
+                        selectedSlot = null; // Reseteamos la hora si cambiamos de día
+                        inputHoraHidden.value = '';
+                        forceAlert.style.display = 'none';
+                        
+                        cargarHorarios();
+                    });
+                }
+                calendarDays.appendChild(dayDiv);
+            }
+        }
+
+        document.getElementById('prev-month').addEventListener('click', () => {
+            const today = new Date();
+            // No permitir ir a meses anteriores al actual
+            if (currentDate.getFullYear() > today.getFullYear() || (currentDate.getFullYear() === today.getFullYear() && currentDate.getMonth() > today.getMonth())) {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                renderCalendar();
+            }
+        });
+
+        document.getElementById('next-month').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+
+        function cargarHorarios() {
+            if (!selectedDate || !selectBarbero.value || !selectServicio.value) return;
+            
+            slotsInfoMsg.style.display = 'none';
+            slotsWrapper.innerHTML = '<div class="text-center w-100 py-3"><span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Buscando disponibilidad...</div>';
+            
+            const parts = selectedDate.split('-');
+            const displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            selectedDateDisplay.textContent = `Horarios para el ${displayDate}`;
+
+            fetch(`/ajax/horarios-dia/?fecha=${selectedDate}&barbero_id=${selectBarbero.value}&servicio_id=${selectServicio.value}&_=${new Date().getTime()}`)
+                .then(response => response.json())
+                .then(data => {
+                    slotsWrapper.innerHTML = '';
+                    if (!data.slots || data.slots.length === 0) {
+                        slotsWrapper.innerHTML = '<p class="text-muted w-100 text-center py-2">No hay horarios disponibles en este día.</p>';
+                        return;
+                    }
+                    
+                    data.slots.forEach(slot => {
+                        const slotDiv = document.createElement('div');
+                        slotDiv.classList.add('time-slot');
+                        slotDiv.textContent = slot.hora_formateada;
+                        slotDiv.dataset.time = slot.hora;
+                        
+                        if (slot.estado === 'Ocupado' || slot.estado === 'Pendiente') {
+                            slotDiv.classList.add('ocupado');
+                            slotDiv.title = 'Este horario ya está ocupado';
+                        } else if (slot.estado === 'Pasado') {
+                            slotDiv.classList.add('pasado');
+                        }
+
+                        // Si es el slot que estaba seleccionado previamente
+                        if (selectedSlot === slot.hora) {
+                            slotDiv.classList.add('selected');
+                        }
+
+                        // Permitir click a pesar de estar ocupado (Admin Power)
+                        if (slot.estado !== 'Pasado') {
+                            slotDiv.addEventListener('click', function() {
+                                document.querySelectorAll('.time-slot.selected').forEach(el => el.classList.remove('selected'));
+                                this.classList.add('selected');
+                                selectedSlot = this.dataset.time;
+                                inputHoraHidden.value = selectedSlot;
+                                
+                                if (this.classList.contains('ocupado')) {
+                                    forceAlert.style.display = 'block';
+                                } else {
+                                    forceAlert.style.display = 'none';
+                                }
+                            });
+                        }
+
+                        slotsWrapper.appendChild(slotDiv);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching slots:', error);
+                    slotsWrapper.innerHTML = '<p class="text-danger w-100 text-center">Error al cargar horarios. Intente nuevamente.</p>';
+                });
+        }
+
+        // Validación final antes de enviar
+        formCita.addEventListener('submit', function(e) {
+            if (!inputFechaHidden.value || !inputHoraHidden.value) {
+                e.preventDefault();
+                alert("Por favor, selecciona una fecha y una hora en el calendario.");
+            }
+        });
+
+        // Inicializar
+        renderCalendar();
+        checkRequirements();
+        if (selectedDate && selectBarbero.value && selectServicio.value) {
+            cargarHorarios();
+        }
+    });
+</script>
+
+<style>
+@keyframes spin { 100% { transform: rotate(360deg); } }
+</style>
+{% endblock %}

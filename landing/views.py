@@ -1,4 +1,4 @@
-from .utils import enviar_whatsapp_otp
+from .utils import enviar_whatsapp_otp, enviar_whatsapp_confirmacion_cliente
 # landing/views.py
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -201,14 +201,14 @@ def obtener_horarios_dia(request):
     almuerzo_start = time_to_minutes(horario_barbero.inicio_almuerzo) if horario_barbero.inicio_almuerzo else None
     almuerzo_end = time_to_minutes(horario_barbero.fin_almuerzo) if horario_barbero.fin_almuerzo else None
     
-    duracion = servicio.duracion_minutos if servicio else 30
+    duracion = servicio.duracion_minutos if servicio else 40
     
     # 4. Obtener citas existentes
     citas_db = Cita.objects.filter(barbero=barbero, fecha=fecha_obj, estado__in=['Confirmada', 'Pendiente'])
     citas_intervalos = []
     for c in citas_db:
         c_start = time_to_minutes(c.hora)
-        c_dur = c.servicio.duracion_minutos if c.servicio else 30
+        c_dur = c.servicio.duracion_minutos if c.servicio else 40
         c_end = c_start + c_dur
         citas_intervalos.append({
             'start': c_start,
@@ -232,7 +232,7 @@ def obtener_horarios_dia(request):
                 es_almuerzo = True
                 
         if es_almuerzo:
-            current_mins += 30
+            current_mins += 40
             continue
             
         # Validar si se cruza con citas
@@ -265,7 +265,7 @@ def obtener_horarios_dia(request):
             'estado': estado_slot
         })
         
-        current_mins += 30
+        current_mins += 40
         
     return JsonResponse({'slots': slots})
 
@@ -376,6 +376,7 @@ def confirmar_codigo_otp(request):
             cita.estado = 'Confirmada'
             cita.verificado = True
             cita.save()
+            enviar_whatsapp_confirmacion_cliente(cita)
             return JsonResponse({'verificado': True})
         else:
             cita.intentos_verificacion += 1
