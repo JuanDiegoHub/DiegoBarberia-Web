@@ -58,7 +58,8 @@ def enviar_whatsapp_reagendamiento(telefono, nombre_cliente, fecha, hora, motivo
         f"⏰ *Nueva Hora:* {hora}\n"
         f"📍 *Sede:* {sede_nombre}\n"
         f"⚠️ *Motivo:* {motivo}\n\n"
-        "Te pedimos disculpas por los inconvenientes. ¡Te esperamos en tu nuevo horario!"
+        "Te pedimos disculpas por los inconvenientes. ¡Te esperamos en tu nuevo horario!\n\n"
+        "⚠️ *Si este nuevo horario no te funciona*, por favor escribe a este WhatsApp para asignarte una hora adecuada."
     )
 
     payload = {
@@ -168,7 +169,7 @@ def enviar_whatsapp_recordatorio(cita):
         f"✂️ *Barbero:* {cita.barbero.nombre}\n"
         f"📍 *Sede:* {cita.barbero.sede.nombre}\n\n"
         "💡 *Recomendación:* Por favor llega 10 minutos antes de tu cita.\n\n"
-        "⚠️ *Si no puedes asistir*, por favor escríbenos por este medio para reagendar tu cita.\n\n"
+        "⚠️ *Si no puedes asistir*, por favor escribe a este WhatsApp para reagendar tu cita.\n\n"
         "¡Te esperamos!"
     )
 
