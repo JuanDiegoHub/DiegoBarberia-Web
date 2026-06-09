@@ -435,7 +435,7 @@ def citas_globales_view(request):
     if telefono_filtro:
         citas = citas.filter(telefono__icontains=telefono_filtro)
 
-    citas = citas.order_by('-fecha', '-hora')
+    citas = citas.order_by('fecha', 'hora')
 
     paginator = Paginator(citas, 15)
     page_number = request.GET.get('page')
